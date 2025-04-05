@@ -2,6 +2,8 @@ package com.example.filebackend.service;
 
 import com.example.filebackend.dto.NoteRequest;
 import com.example.filebackend.dto.NoteResponse;
+import com.example.filebackend.exception.NoteNotFoundException;
+import com.example.filebackend.exception.UnauthorizedAccessException;
 import com.example.filebackend.model.Note;
 import com.example.filebackend.repository.NoteRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,22 @@ public class NoteService {
 
     public void deleteNote(String noteId, String userId) {
         noteRepository.deleteByIdAndUserId(noteId, userId);
+    }
+
+    public NoteResponse updateNote(String noteId, NoteRequest request, String userId) {
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new NoteNotFoundException("Note not found with ID: " + noteId));
+
+        if (!note.getUserId().equals(userId)) {
+            throw new UnauthorizedAccessException("You do not have permission to edit this note.");
+        }
+
+        note.setTitle(request.getTitle());
+        note.setContent(request.getContent());
+        note.setLastModifiedDate(new Date());
+
+        Note updatedNote = noteRepository.save(note);
+        return mapToResponse(updatedNote);
     }
 
     private NoteResponse mapToResponse(Note note) {

@@ -43,4 +43,16 @@ public class NoteController {
         noteService.deleteNote(noteId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
+
+
+    @PutMapping("/{noteId}")
+    public ResponseEntity<NoteResponse> updateNote(
+            @PathVariable String noteId,
+            @RequestBody NoteRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                noteService.updateNote(noteId, request, userDetails.getUsername())
+        );
+    }
 }

@@ -37,7 +37,7 @@ public class FileController {
     public ResponseEntity<Void> deleteFile(
             @PathVariable String fileId,
             @AuthenticationPrincipal UserDetails userDetails
-    ) throws IOException{
+    ) {
         fileService.deleteFile(fileId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }

@@ -4,8 +4,11 @@ import com.example.filebackend.dto.FileResponse;
 import com.example.filebackend.model.FileMetadata;
 import com.example.filebackend.repository.FileMetadataRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -44,17 +47,28 @@ public class FileService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteFile(String fileId, String userId) throws IOException {
-        // 1. Find file metadata
-        FileMetadata metadata = fileMetadataRepository.findByIdAndUserId(fileId, userId)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+    @Transactional
+    public void deleteFile(String fileId, String userId) {
+        // 1. Check existence and ownership
+        FileMetadata metadata = fileMetadataRepository
+                .findByIdAndUserId(fileId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "File not found or access denied"
+                ));
 
-        // 2. Delete from Cloudinary (extract public ID from URL)
-        String publicId = extractPublicIdFromUrl(metadata.getFileUrl());
-        cloudinaryService.deleteFile(publicId);
+        try {
+            // 2. Delete from storage
+            cloudinaryService.deleteFile(metadata.getFileName());
 
-        // 3. Delete metadata
-        fileMetadataRepository.delete(metadata);
+            // 3. Delete metadata
+            fileMetadataRepository.delete(metadata);
+        } catch (IOException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "File storage deletion failed"
+            );
+        }
     }
 
     // Helper method to map FileMetadata to FileResponse
