@@ -56,6 +56,13 @@ public class NoteService {
         return mapToResponse(updatedNote);
     }
 
+    public List<NoteResponse> searchNotes(String userId, String keyword) {
+        List<Note> notes = noteRepository.findByUserIdAndTextSearch(userId, keyword);
+        return notes.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     private NoteResponse mapToResponse(Note note) {
         return NoteResponse.builder()
                 .id(note.getId())

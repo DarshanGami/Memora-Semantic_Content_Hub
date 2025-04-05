@@ -55,4 +55,14 @@ public class NoteController {
                 noteService.updateNote(noteId, request, userDetails.getUsername())
         );
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<NoteResponse>> searchNotes(
+            @RequestParam String q,  // Query parameter (e.g., /search?q=spring)
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        return ResponseEntity.ok(
+                noteService.searchNotes(userDetails.getUsername(), q)
+        );
+    }
 }
