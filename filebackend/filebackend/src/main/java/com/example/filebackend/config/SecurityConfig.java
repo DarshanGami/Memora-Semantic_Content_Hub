@@ -22,6 +22,8 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -33,6 +35,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors
+                        .configurationSource(request -> {
+                            var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                            corsConfig.setAllowedOrigins(List.of("http://localhost:5173"));
+                            corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                            corsConfig.setAllowedHeaders(List.of("*"));
+                            corsConfig.setAllowCredentials(true);
+                            return corsConfig;
+                        })
+                )
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
