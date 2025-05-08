@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import ErrorBoundary from './components/ErrorBoundary';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -13,9 +14,11 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ErrorBoundary>
-              <DashboardPage />
-            </ErrorBoundary>
+            <PrivateRoute>
+              <ErrorBoundary>
+                <DashboardPage />
+              </ErrorBoundary>
+            </PrivateRoute>
           }
         />
       </Routes>

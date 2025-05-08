@@ -13,8 +13,12 @@ const SignupPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Redirect to dashboard if already logged in
+    if (localStorage.getItem('token')) {
+      navigate('/dashboard');
+    }
     setIsVisible(true);
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,7 +37,7 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0% { transform: translateY(0px); }
           50% { transform: translateY(-10px); }

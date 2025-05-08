@@ -75,13 +75,31 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
             type = 'image';
           }
         }
-        return { ...f, type };
+        return { 
+          ...f, 
+          type,
+          createdAt: f.createdAt || f.uploadDate,
+          updatedAt: f.updatedAt || f.modifiedDate || f.createdAt || f.uploadDate
+        };
       });
 
-      const notes = noteRes.data.map(n => ({ ...n, type: 'note' }));
-      const links = linkRes.data.map(l => ({ ...l, type: 'link' }));
+      const notes = noteRes.data.map(n => ({ 
+        ...n, 
+        type: 'note',
+        createdAt: n.createdAt || n.createdDate,
+        updatedAt: n.updatedAt || n.modifiedDate || n.createdAt || n.createdDate
+      }));
+      
+      const links = linkRes.data.map(l => ({ 
+        ...l, 
+        type: 'link',
+        createdAt: l.createdAt || l.createdDate,
+        updatedAt: l.updatedAt || l.modifiedDate || l.createdAt || l.createdDate
+      }));
 
       const allItems = [...notes, ...files, ...links];
+      // Sort items by createdAt date in descending order (newest first)
+      allItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setItems(allItems);
     } catch (err) {
       console.error('Error loading dashboard:', {
@@ -172,18 +190,6 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
       alert('Failed to save link.');
     }
   };
- 
-
-  const handleDeleteNote = async (id) => {
-    try {
-      await api.delete(`/notes/${id}`);
-      setShowNoteModal(false);
-      setEditingNoteId(null);
-      fetchData();
-    } catch (err) {
-      console.error('Error deleting note:', err);
-    }
-  };
 
   const filteredItems = items.filter((item) => {
     const query = searchQuery.toLowerCase();
@@ -214,10 +220,42 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
   };
 
   // Handler to delete item
-  const handleDeleteItem = (id) => {
-    setItems(items => items.filter(i => i.id !== id));
-    setShowItemModal(false);
-    setSelectedItem(null);
+  const handleDeleteItem = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No authentication token found. Please login again.');
+        return;
+      }
+
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      // Make API call based on item type
+      switch (item.type) {
+        case 'note':
+          await api.delete(`/notes/${id}`);
+          break;
+        case 'image':
+        case 'document':
+          await api.delete(`/files/${id}`);
+          break;
+        case 'link':
+          await api.delete(`/links/${id}`);
+          break;
+        default:
+          console.error('Unknown item type:', item.type);
+          return;
+      }
+
+      // Update local state after successful deletion
+      setItems(items => items.filter(i => i.id !== id));
+      setShowItemModal(false);
+      setSelectedItem(null);
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      alert('Failed to delete item. Please try again.');
+    }
   };
 
   return (
@@ -385,12 +423,19 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col"
+                className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col border-2 ${selectedItem && selectedItem.id === item.id && showItemModal ? 'border-teal-500 ring-2 ring-teal-300' : 'border-transparent'}`}
                 onClick={() => handleCardClick(item)}
+                style={{ position: 'relative' }}
               >
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-teal-800 truncate">{item.title}</h3>
+                    <h3 className="text-xl font-semibold text-teal-800 truncate w-full text-center">
+                      {/* Centered title for all types */}
+                      {item.type === "document" && (item.title || item.fileName)}
+                      {item.type === "link" && (item.title || item.url)}
+                      {item.type === "note" && item.title}
+                      {item.type === "image" && (item.title || item.fileName)}
+                    </h3>
                     <span className="text-sm text-teal-500">
                       {item.type === "note" && "📝"}
                       {item.type === "image" && "🖼️"}
@@ -399,60 +444,72 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="text-gray-600 mb-4 line-clamp-3">
-                      {item.type === "note" && item.content}
-                      {item.type === "image" && (
+                    {/* Document Card UI */}
+                    {item.type === "document" && (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-4xl text-teal-500">📄</span>
+                          <a
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-700 underline text-lg font-medium"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            {item.fileName}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    {/* Link Card UI */}
+                    {item.type === "link" && (
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-teal-600 underline text-lg font-medium text-center break-all hover:text-teal-800"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          {item.url}
+                        </a>
+                        {item.description && (
+                          <div className="text-xs text-gray-500 mt-1 text-center max-w-xs">{item.description}</div>
+                        )}
+                      </div>
+                    )}
+                    {/* Image Card UI */}
+                    {item.type === "image" && (
+                      <>
+                        <div className="font-semibold text-base text-teal-800 mb-2 text-center">{item.title || item.fileName}</div>
                         <img
                           src={item.fileUrl}
                           alt={item.fileName}
                           className="w-full object-cover rounded-lg"
                           style={{ maxHeight: 200 }}
                         />
-                      )}
-                      {item.type === "document" && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-teal-500">📄</span>
-                          <a
-                            href={item.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-teal-700 underline"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {item.fileName}
-                          </a>
-                        </div>
-                      )}
-                      {item.type === "link" && (
-                        <>
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-teal-500 hover:text-teal-600"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {item.url}
-                          </a>
-                          {item.description && (
-                            <div className="text-xs text-gray-500 mt-1">{item.description}</div>
-                          )}
-                        </>
-                      )}
-                    </p>
+                      </>
+                    )}
+                    {/* Note Card UI */}
+                    {item.type === "note" && (
+                      <div className="text-gray-600 mb-4 line-clamp-3 text-center">{item.content}</div>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mt-auto">
-                    <div className="flex gap-2">
-                      {(item.tags || []).map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 bg-teal-100 text-teal-600 rounded-full text-xs"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                    <div className="flex flex-col">
+                      <div className="mb-2 max-w-full overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-teal-300 scrollbar-track-teal-50" style={{ WebkitOverflowScrolling: 'touch' }}>
+                        {(item.tags || []).map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-block px-2 py-1 bg-teal-100 text-teal-600 rounded-full text-xs mr-2 mb-1"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <span className="text-sm text-gray-500">{item.date}</span>
+                    <span className="text-xs text-gray-500">Modified: {new Date(item.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
