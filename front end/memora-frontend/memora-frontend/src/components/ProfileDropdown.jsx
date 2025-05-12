@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ProfileModal from './ProfileModal';
+import { useNavigate } from 'react-router-dom';
 
 export default function ProfileDropdown() {
   const [open, setOpen] = useState(false);
@@ -7,6 +8,7 @@ export default function ProfileDropdown() {
   const dropdownRef = useRef(null);
   const [randomEmoji, setRandomEmoji] = useState("👤");
   const [hovered, setHovered] = useState(false);
+  const navigate = useNavigate();
 
   // Generate random emoji on component mount
   useEffect(() => {
@@ -34,6 +36,24 @@ export default function ProfileDropdown() {
     setOpen(false);
     setShowProfile(true);
   };
+
+  // Add logout handler
+  const handleLogout = () => {
+    // Remove all cookies
+    document.cookie.split(';').forEach(cookie => {
+      const eqPos = cookie.indexOf('=');
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    });
+    localStorage.clear();
+    window.location.href = '/'; // Redirect to root (your login page)
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   return (
     <>
@@ -82,13 +102,13 @@ export default function ProfileDropdown() {
               <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">⚙️</span>
               Settings
             </a>
-            <a
-              href="/logout"
-              className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group"
+            <button
+              onClick={handleLogout}
+              className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group w-full text-left"
             >
               <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">🚪</span>
               Logout
-            </a>
+            </button>
           </div>
         )}
       </div>

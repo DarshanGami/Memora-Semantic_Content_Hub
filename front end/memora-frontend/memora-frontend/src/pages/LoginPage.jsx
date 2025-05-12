@@ -23,9 +23,21 @@ const LoginPage = () => {
     }
   };
 
+  // Logout function to clear all cookies and localStorage, then redirect to login
+  // const handleLogout = () => {
+  //   // Remove all cookies
+  //   document.cookie.split(';').forEach(cookie => {
+  //     const eqPos = cookie.indexOf('=');
+  //     const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+  //     document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+  //   });
+  //   localStorage.clear();
+  //   window.location.href = '/login';
+  // };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0% { transform: translateY(0px); }
           50% { transform: translateY(-10px); }

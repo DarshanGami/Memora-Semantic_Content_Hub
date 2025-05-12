@@ -6,6 +6,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
+  const [copySuccess, setCopySuccess] = useState('');
 
   // Reset fields to item's current values whenever item changes
   useEffect(() => {
@@ -17,6 +18,35 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       setTags(item.tags ? item.tags.join(', ') : '');
     }
   }, [item]);
+
+  const handleCopy = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess('Copied!');
+      setTimeout(() => setCopySuccess(''), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      setCopySuccess('Failed to copy');
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(item.fileUrl);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = item.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('Failed to download:', err);
+      alert('Failed to download file');
+    }
+  };
 
   if (!isOpen || !item) return null;
 
@@ -48,7 +78,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-fadeInUp">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-purple-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-teal-800 flex items-center gap-2">
               {item.type === 'note' && '📝'}
               {item.type === 'image' && '🖼️'}
               {item.type === 'document' && '📄'}
@@ -66,7 +96,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
               <input
-                className="w-full p-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
               />
@@ -76,11 +106,17 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Content</label>
                 <textarea
-                  className="w-full p-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   rows={4}
                   value={content}
                   onChange={e => setContent(e.target.value)}
                 />
+                <button
+                  onClick={() => handleCopy(content)}
+                  className="mt-2 px-3 py-1 bg-teal-100 text-teal-600 rounded-lg hover:bg-teal-200 transition-colors text-sm"
+                >
+                  {copySuccess || 'Copy Content'}
+                </button>
               </div>
             )}
             {/* Image: show image and fileName only */}
@@ -92,21 +128,37 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                   className="w-full object-contain rounded-lg"
                   style={{ maxHeight: '60vh', maxWidth: '100%', display: 'block', margin: '0 auto' }}
                 />
-                <div className="mt-2 text-xs text-gray-500">{item.fileName}</div>
+                <div className="mt-2 flex justify-between items-center">
+                  <span className="text-xs text-gray-500">{item.fileName}</span>
+                  <button
+                    onClick={handleDownload}
+                    className="px-3 py-1 bg-teal-100 text-teal-600 rounded-lg hover:bg-teal-200 transition-colors text-sm"
+                  >
+                    Download
+                  </button>
+                </div>
               </div>
             )}
             {/* Document: show fileName only */}
             {item.type === 'document' && (
-              <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg">
-                <span className="text-purple-500">📄</span>
-                <a
-                  href={item.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-purple-700 underline"
+              <div>
+                <div className="flex items-center gap-2 p-3 bg-teal-50 rounded-lg">
+                  <span className="text-teal-500">📄</span>
+                  <a
+                    href={item.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-teal-700 underline"
+                  >
+                    {item.fileName}
+                  </a>
+                </div>
+                <button
+                  onClick={handleDownload}
+                  className="mt-2 px-3 py-1 bg-teal-100 text-teal-600 rounded-lg hover:bg-teal-200 transition-colors text-sm"
                 >
-                  {item.fileName}
-                </a>
+                  Download
+                </button>
               </div>
             )}
             {/* Link: editable URL and description */}
@@ -114,16 +166,24 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
               <>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">URL</label>
-                  <input
-                    className="w-full p-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={url}
-                    onChange={e => setUrl(e.target.value)}
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      className="flex-1 p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      value={url}
+                      onChange={e => setUrl(e.target.value)}
+                    />
+                    <button
+                      onClick={() => handleCopy(url)}
+                      className="px-3 py-1 bg-teal-100 text-teal-600 rounded-lg hover:bg-teal-200 transition-colors text-sm whitespace-nowrap"
+                    >
+                      {copySuccess || 'Copy URL'}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
                   <input
-                    className="w-full p-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                   />
@@ -135,7 +195,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Tags (comma separated)</label>
                 <input
-                  className="w-full p-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   value={tags}
                   onChange={e => setTags(e.target.value)}
                 />
@@ -145,7 +205,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
               <span className="text-xs text-gray-400">{item.date}</span>
               <div className="flex gap-2">
                 <button onClick={handleDelete} className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm">Delete</button>
-                <button onClick={handleSave} className="px-3 py-1.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm">Save</button>
+                <button onClick={handleSave} className="px-3 py-1.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm">Save</button>
               </div>
             </div>
           </div>
