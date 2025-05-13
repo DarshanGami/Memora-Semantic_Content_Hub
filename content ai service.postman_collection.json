@@ -1,0 +1,238 @@
+{
+	"info": {
+		"_postman_id": "d0e67fad-8394-4e07-b267-33b0487cebf1",
+		"name": "content ai service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43592665",
+		"_collection_link": "https://mitulsudani.postman.co/workspace/Mitul-Sudani's-Workspace~b23ff31a-36f5-4acf-8df5-1dd3a3961969/collection/43592665-d0e67fad-8394-4e07-b267-33b0487cebf1?action=share&source=collection_link&creator=43592665"
+	},
+	"item": [
+		{
+			"name": "image upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "postman-cloud:///1f02e4d5-f19c-4810-ba89-336ff2ba2216"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/image",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"image"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "image search",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "note upload",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"note_text\": \"We are planning a 7-day trip to Himachal Pradesh in October. The group includes four friends, and we’ll be visiting Manali, Kasol, and Tosh. The trip will start from Delhi by Volvo bus and return by train. Accommodation will be pre-booked through Airbnb and hostels for budget-friendliness.\\n\\nHere's the tentative plan:\\n\\n- Day 1: Delhi to Manali overnight journey by Volvo (₹1,200 per person)\\n- Day 2-3: Manali sightseeing – Hidimba Temple, Mall Road, Solang Valley (local cab ₹2,500/day)\\n- Day 4: Transfer to Kasol (shared cab ₹500), stay in riverside camp\\n- Day 5: Trek to Tosh village, photography and café hopping\\n- Day 6: Return to Kasol, shopping and chill day\\n- Day 7: Bus back to Delhi\\n\\nEstimated Expenses:\\n- Travel (bus/train): ₹2,500\\n- Local cabs and transfers: ₹2,000\\n- Stay (6 nights): ₹3,000\\n- Food and cafes: ₹2,000\\n- Activities/tickets: ₹1,000\\n- Shopping & misc.: ₹1,000\\n\\nTotal per person: ₹11,500 (approx.)\\n\\nWe will finalize the bookings by next week and create a shared folder for tickets, IDs, and expenses. Google Sheets will be used to track shared costs in real-time.\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/note",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"note"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "note search",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/search/note?q=spending",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"search",
+						"note"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "spending"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "link upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"url\": \"https://ilovepdf.com\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/link",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"link"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "link search",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "image tag",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"image_id\": \"0d507104-c9fc-4c12-81ba-78ca254ef168\",\r\n  \"custom_tag\": \"cikada\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/add/image-tag",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"add",
+						"image-tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "note tag",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"note_id\": \"abda4b48-1797-479c-9318-0617309cb124\",\r\n  \"custom_tag\": \"important_note\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/add/note-tag",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"add",
+						"note-tag"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "link tag",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"link_id\": \"c1790dcf-734b-414f-bbbe-3588c3817fea\",\r\n  \"custom_tag\": \"useful_link\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/add/link-tag",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"add",
+						"link-tag"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
