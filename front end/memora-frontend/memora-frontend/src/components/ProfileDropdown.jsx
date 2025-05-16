@@ -5,17 +5,19 @@ import { useNavigate } from 'react-router-dom';
 export default function ProfileDropdown() {
   const [open, setOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const dropdownRef = useRef(null);
-  const [randomEmoji, setRandomEmoji] = useState("👤");
   const [hovered, setHovered] = useState(false);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+  const Emoji = "👽";
 
-  // Generate random emoji on component mount
-  useEffect(() => {
-    const emojis = ["👤", "😊", "😎", "🤓", "🧐", "🤔", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽", "👾", "🤖", "🎃", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾"];
-    const randomIndex = Math.floor(Math.random() * emojis.length);
-    setRandomEmoji(emojis[randomIndex]);
-  }, []);
+  // // Generate random emoji on component mount
+  // useEffect(() => {
+  //   const emojis = ["👽"];
+  //   const randomIndex = Math.floor(Math.random() * emojis.length);
+  //   setRandomEmoji(emojis[randomIndex]);
+  // }, []);
+
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,11 +33,14 @@ export default function ProfileDropdown() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [open]);
+  
 
   const handleProfileClick = () => {
     setOpen(false);
     setShowProfile(true);
   };
+
+
 
   // Add logout handler
   const handleLogout = () => {
@@ -48,6 +53,8 @@ export default function ProfileDropdown() {
     localStorage.clear();
     window.location.href = '/'; // Redirect to root (your login page)
   };
+
+
 
   useEffect(() => {
     if (localStorage.getItem('token')) {
@@ -68,6 +75,8 @@ export default function ProfileDropdown() {
         className="fixed top-5 right-8 z-50"
         ref={dropdownRef}
       >
+
+        {/* Profile Button Property when hovered then rotate and increase scale*/}
         <button
           className={`w-12 h-12 rounded-full overflow-hidden border-2 shadow-lg flex items-center justify-center text-3xl transition-all duration-300 transform ${
             hovered ? 'scale-110 rotate-12' : 'scale-100 rotate-0'
@@ -80,34 +89,33 @@ export default function ProfileDropdown() {
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          {randomEmoji}
+          {/* setHovered is when mouse in area arrow will be clickable */}
+        {Emoji}
+
         </button>
-        {open && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl py-2 flex flex-col z-50 border border-teal-100 overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-teal-50 to-teal-100 border-b border-teal-100">
-              <h3 className="font-semibold text-[rgb(13,148,136)]">Welcome Back!</h3>
-              <p className="text-sm text-teal-600">Manage your account</p>
-            </div>
-            <button
-              onClick={handleProfileClick}
-              className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group"
-            >
-              <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">👤</span>
-              Profile
-            </button>
-            <a
-              href="/settings"
-              className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group"
-            >
-              <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">⚙️</span>
-              Settings
-            </a>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group w-full text-left"
-            >
-              <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">🚪</span>
-              Logout
+          {open && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl py-2 flex flex-col z-50 border border-teal-100 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-teal-50 to-teal-100 border-b border-teal-100">
+                <h3 className="font-semibold text-[rgb(13,148,136)]">Welcome Back!</h3>
+                <p className="text-sm text-teal-600">Manage your account</p>
+              </div>
+
+              {/* Profile Button */}
+              <button
+                onClick={handleProfileClick}
+                className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group"
+              >
+                <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">👤</span>
+                Profile
+              </button>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-3 text-gray-700 hover:bg-teal-50 transition-all duration-200 flex items-center gap-2 group w-full text-left"
+              >
+                <span className="text-[rgb(13,148,136)] group-hover:text-teal-600">🚪</span>
+                Logout
             </button>
           </div>
         )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate , Link} from 'react-router-dom';
 import api from '../services/api';
 
 const LoginPage = () => {
@@ -22,18 +22,6 @@ const LoginPage = () => {
       alert('Login failed');
     }
   };
-
-  // Logout function to clear all cookies and localStorage, then redirect to login
-  // const handleLogout = () => {
-  //   // Remove all cookies
-  //   document.cookie.split(';').forEach(cookie => {
-  //     const eqPos = cookie.indexOf('=');
-  //     const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-  //     document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-  //   });
-  //   localStorage.clear();
-  //   window.location.href = '/login';
-  // };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
@@ -123,12 +111,11 @@ const LoginPage = () => {
           <div className="slide-in" style={{ animationDelay: '0.4s' }}>
             <p className="mt-6 text-center text-sm text-gray-600">
               Don't have an account?{' '}
-              <a 
-                href="/signup" 
-                className="text-teal-600 font-semibold hover:text-teal-700 transition-colors duration-200 hover:underline"
-              >
-                Sign Up
-              </a>
+              <Link
+                  to="/signup"
+                  className="text-teal-600 font-semibold hover:text-teal-700 transition-colors duration-200 hover:underline">
+                  Sign Up
+              </Link>
             </p>
           </div>
         </div>

@@ -18,6 +18,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       setTags(item.tags ? item.tags.join(', ') : '');
     }
   }, [item]);
+  
 
   const handleCopy = async (text) => {
     try {
@@ -29,6 +30,8 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       setCopySuccess('Failed to copy');
     }
   };
+
+
 
   const handleDownload = async () => {
     try {
@@ -48,30 +51,39 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
     }
   };
 
+
+
   if (!isOpen || !item) return null;
 
+
+  // BADHI API add UPDATE karvani chhe...................................................
   const handleSave = () => {
     let updated = { ...item, title };
+
     if (item.type === 'note') updated.content = content;
+
     if (item.type === 'link') {
       updated.url = url;
       updated.description = description;
     }
+
     if (item.type === 'image' || item.type === 'document') {
       updated.fileName = title;
       updated.fileUrl = url;
     }
-    if (item.type === 'note') {
-      updated.tags = tags.split(',').map(t => t.trim());
-    }
+
+    // Save tags for ALL item types
+    updated.tags = tags.split(',').map(t => t.trim());
     onSave(updated);
   };
+
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this card?')) {
       onDelete(item.id);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-all duration-300">
@@ -83,7 +95,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
               {item.type === 'image' && '🖼️'}
               {item.type === 'document' && '📄'}
               {item.type === 'link' && '🔗'}
-              Edit {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+              {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
             </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-700 transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,6 +103,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
               </svg>
             </button>
           </div>
+
           <div className="space-y-4">
             {/* Title always editable */}
             <div>
@@ -100,14 +113,15 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
               />
-            </div>
+            </div> 
+
             {/* Note: content editable */}
             {item.type === 'note' && (
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Content</label>
                 <textarea
                   className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  rows={4}
+                  rows={10}
                   value={content}
                   onChange={e => setContent(e.target.value)}
                 />
@@ -119,6 +133,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                 </button>
               </div>
             )}
+
             {/* Image: show image and fileName only */}
             {item.type === 'image' && (
               <div>
@@ -139,6 +154,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                 </div>
               </div>
             )}
+
             {/* Document: show fileName only */}
             {item.type === 'document' && (
               <div>
@@ -161,6 +177,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                 </button>
               </div>
             )}
+
             {/* Link: editable URL and description */}
             {item.type === 'link' && (
               <>
@@ -190,17 +207,17 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                 </div>
               </>
             )}
-            {/* Tags always editable for notes only */}
-            {item.type === 'note' && (
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Tags (comma separated)</label>
-                <input
-                  className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  value={tags}
-                  onChange={e => setTags(e.target.value)}
-                />
-              </div>
-            )}
+
+            {/* Tags always editable for all*/}
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Tags (comma separated)</label>
+              <input
+                className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                value={tags}
+                onChange={e => setTags(e.target.value)}
+              />
+            </div>
+
             <div className="flex items-center justify-between mt-4">
               <span className="text-xs text-gray-400">{item.date}</span>
               <div className="flex gap-2">

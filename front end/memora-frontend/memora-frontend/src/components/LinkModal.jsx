@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const LinkModal = ({ title, setTitle, url, setUrl, description, setDescription, onSaved, onClose }) => {
+const LinkModal = ({ title, setTitle, url, setUrl, description, setDescription, linkTags, setLinkTags, onSaved, onClose }) => {
   const [error, setError] = useState('');
 
   const handleAdd = async () => {
@@ -65,21 +65,35 @@ const LinkModal = ({ title, setTitle, url, setUrl, description, setDescription, 
                 placeholder="Enter link description (optional)"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+              <input
+                type="text"
+                value={linkTags}
+                onChange={(e) => setLinkTags(e.target.value)}
+                className="w-full p-2 border border-[rgb(13,148,136)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
+                placeholder="Enter tags (comma separated)"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button 
+                onClick={onClose} 
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleAdd} 
+                className="px-4 py-2 bg-[rgb(13,148,136)] text-white rounded-lg hover:bg-[rgb(19,78,74)] transition-colors"
+              >
+                Add Link
+              </button>
+            </div>
           </div>
-          <div className="flex justify-end gap-2 mt-6">
-            <button 
-              onClick={onClose} 
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleAdd} 
-              className="px-4 py-2 bg-[rgb(13,148,136)] text-white rounded-lg hover:bg-[rgb(19,78,74)] transition-colors"
-            >
-              Add Link
-            </button>
-          </div>
+
+
         </div>
       </div>
     </div>
