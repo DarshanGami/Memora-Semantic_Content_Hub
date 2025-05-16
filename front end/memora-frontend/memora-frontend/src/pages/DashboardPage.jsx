@@ -9,9 +9,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import axios from 'axios';
 
 const DashboardPage = () => {
-    const [files, setFiles] = useState([]);
-    const [notes, setNotes] = useState([]);
-    const [links, setLinks] = useState([]);
+    
 
     const [search, setSearch] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
