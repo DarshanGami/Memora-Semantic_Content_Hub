@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
+
+
+// BAKIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII USER PROFILE
+
+
+
+
+
 export default function ProfileModal({ isOpen, onClose, noteCount = 0, imageCount = 0, documentCount = 0, linkCount = 0 }) {
   const [user, setUser] = useState({});
 
@@ -8,6 +16,8 @@ export default function ProfileModal({ isOpen, onClose, noteCount = 0, imageCoun
     const userData = JSON.parse(localStorage.getItem('user')) || {};
     setUser(userData);
   }, [isOpen]);
+
+  console.log("ppapa" , user);
 
   if (!isOpen) return null;
 

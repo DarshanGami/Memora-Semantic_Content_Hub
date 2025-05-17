@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import NoteCard from '../components/NoteCard';
 import NoteModal from '../components/NoteModal';
-import FileCard from '../components/FileCard';
-import LinkCard from '../components/LinkCard';
 import FileUploadModal from '../components/FileUploadModal';
 import LinkModal from '../components/LinkModal';
 import ProfileDropdown from '../components/ProfileDropdown';
@@ -12,45 +9,48 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import axios from 'axios';
 
 const DashboardPage = () => {
-  const [files, setFiles] = useState([]);
-const [notes, setNotes] = useState([]);
-const [links, setLinks] = useState([]);
+    const [files, setFiles] = useState([]);
+    const [notes, setNotes] = useState([]);
+    const [links, setLinks] = useState([]);
 
-const [search, setSearch] = useState('');
-const [searchQuery, setSearchQuery] = useState('');
-const [activeTab, setActiveTab] = useState("all");
+    const [search, setSearch] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState("all");
 
-const [showNoteModal, setShowNoteModal] = useState(false);
-const [showFileModal, setShowFileModal] = useState(false);
-const [showLinkModal, setShowLinkModal] = useState(false);
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [showFileModal, setShowFileModal] = useState(false);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+    const [fileTags, setFileTags] = useState([]);
 
-const [noteTitle, setNoteTitle] = useState('');
-const [noteContent, setNoteContent] = useState('');
-const [editingNoteId, setEditingNoteId] = useState(null);
+    const [noteTitle, setNoteTitle] = useState('');
+    const [noteContent, setNoteContent] = useState('');
+    const [noteTags, setNoteTags] = useState([]);
+    const [editingNoteId, setEditingNoteId] = useState(null);
 
-const [linkTitle, setLinkTitle] = useState('');
-const [linkUrl, setLinkUrl] = useState('');
-const [linkDescription, setLinkDescription] = useState('');
-const [editingLinkId, setEditingLinkId] = useState(null);
+    const [linkTitle, setLinkTitle] = useState('');
+    const [linkUrl, setLinkUrl] = useState('');
+    const [linkDescription, setLinkDescription] = useState('');
+    const [linkTags, setLinkTags] = useState([]);
+    const [editingLinkId, setEditingLinkId] = useState(null);
 
-const [items, setItems] = useState([]);
-const [selectedItem, setSelectedItem] = useState(null);
-const [showItemModal, setShowItemModal] = useState(false);
+    const [items, setItems] = useState([]);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [showItemModal, setShowItemModal] = useState(false);
 
-const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 
-  // Assume userId is available (e.g., from localStorage)
-  const userId = localStorage.getItem('userId');
+    // Assume userId is available (e.g., from localStorage)
+    const userId = localStorage.getItem('userId');
 
-  useEffect(() => {
-    console.log('Dashboard mounted, fetching data...');
-    fetchData();
-  }, []);
+    useEffect(() => {
+      console.log('Dashboard mounted, fetching data...');
+      fetchData();
+    }, []);
 
-  const fetchData = async () => {
+    const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-     
+
       if (!token) {
         console.error('No token found');
         return;
@@ -61,70 +61,87 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         'Content-Type': 'application/json'
       };
 
+      // 1. Fetch all data in parallel
+      const headersConfig = { headers };
       const [fileRes, noteRes, linkRes] = await Promise.all([
-        api.get('/files', { headers }),
-        api.get('/notes', { headers }),
-        api.get('/links', { headers })
+        api.get('/files', headersConfig),
+        api.get('/notes', headersConfig),
+        api.get('/links', headersConfig)
       ]);
 
-      const files = fileRes.data.map(f => {
-        let type = 'document';
-        if (f.fileName) {
-          const ext = f.fileName.split('.').pop().toLowerCase();
-          if (imageExtensions.includes(ext)) {
-            type = 'image';
-          }
-        }
-        return { 
-          ...f, 
+      // 2. Process files
+      const files = fileRes.data.map(file => {
+        const extension = file.fileName?.split('.').pop().toLowerCase();
+        const type = imageExtensions.includes(extension) ? 'image' : 'document';
+
+        return {
+          ...file,
           type,
-          createdAt: f.createdAt || f.uploadDate,
-          updatedAt: f.updatedAt || f.modifiedDate || f.createdAt || f.uploadDate
+          createdAt: file.createdAt || file.uploadDate,
+          updatedAt:
+            file.updatedAt ||
+            file.modifiedDate ||
+            file.createdAt ||
+            file.uploadDate
         };
       });
 
-      const notes = noteRes.data.map(n => ({ 
-        ...n, 
+      // 3. Process notes
+      const notes = noteRes.data.map(note => ({
+        ...note,
         type: 'note',
-        createdAt: n.createdAt || n.createdDate,
-        updatedAt: n.updatedAt || n.modifiedDate || n.createdAt || n.createdDate
-      }));
-      
-      const links = linkRes.data.map(l => ({ 
-        ...l, 
-        type: 'link',
-        createdAt: l.createdAt || l.createdDate,
-        updatedAt: l.updatedAt || l.modifiedDate || l.createdAt || l.createdDate
+        createdAt: note.createdAt || note.createdDate,
+        updatedAt:
+          note.updatedAt ||
+          note.modifiedDate ||
+          note.createdAt ||
+          note.createdDate
       }));
 
-      const allItems = [...notes, ...files, ...links];
-      // Sort items by createdAt date in descending order (newest first)
-      allItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // 4. Process links
+      const links = linkRes.data.map(link => ({
+        ...link,
+        type: 'link',
+        createdAt: link.createdAt || link.createdDate,
+        updatedAt:
+          link.updatedAt ||
+          link.modifiedDate ||
+          link.createdAt ||
+          link.createdDate
+      }));
+
+      // 5. Combine and sort all items by newest first
+      const allItems = [...notes, ...files, ...links].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
       setItems(allItems);
+
     } catch (err) {
-      console.error('Error loading dashboard:', {
+      console.error('Error loading dashboard data:', {
         error: err,
         response: err.response,
         message: err.message
       });
-     
+
+      // Display appropriate error message
       if (err.response) {
-        // Server responded with error
         alert(`Failed to load data: ${err.response.data?.message || err.response.statusText}`);
       } else if (err.request) {
-        // No response received
-        alert('Server not responding. Please check if the server is running.');
+        alert('Server not responding. Please make sure it is running.');
       } else {
-        // Request setup error
         alert(`Error: ${err.message}`);
       }
     }
   };
 
+
   useEffect(() => {
     console.log("Updated items:", items);
   }, [items]);
 
+
+  // Tags nu add karvanu API and field.............................................
   const handleNoteSubmit = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -133,19 +150,31 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         return;
       }
 
+      const parsedTags = noteTags
+            .split(',')                    // Split the input string by commas
+            .map(t => t.trim())            // Trim whitespace around each tag
+            .filter(t => t.length > 0);   // Remove any empty tags
+
+      console.log("hello", parsedTags);
+
       if (editingNoteId) {
         await api.put(`/notes/${editingNoteId}`, {
           title: noteTitle,
           content: noteContent,
+          // tags: parsedTags,
         });
       } else {
         await api.post('/notes', {
           title: noteTitle,
-          content: noteContent
+          content: noteContent,
+          // tags: parsedTags,
         });
       }
+
+      // Clear fields and close modal
       setNoteTitle('');
       setNoteContent('');
+      setNoteTags([]);
       setEditingNoteId(null);
       setShowNoteModal(false);
       fetchData(); // Refresh all data
@@ -154,6 +183,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
       alert('Failed to save note. Check console for details.');
     }
   };
+
 
   const handleFileUploaded = async (file) => {
     try {
@@ -166,6 +196,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         }
       });
       setShowFileModal(false);
+      setFileTags([]);
       fetchData();
     } catch (err) {
       console.error('Error uploading file:', err);
@@ -173,8 +204,10 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
     }
   };
 
+  // tags nu add karvanu baki chhe.......................................
   const handleLinkSaved = async () => {
     try {
+      
       await api.post('/links', {
         url: linkUrl,
         title: linkTitle,
@@ -184,6 +217,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
       setLinkTitle("");
       setLinkUrl("");
       setLinkDescription("");
+      setLinkTags([]);
       fetchData();
     } catch (err) {
       console.error('Error saving link:', err);
@@ -196,12 +230,13 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
     const matchesTitle =
       (item.title && item.title.toLowerCase().includes(query)) ||
       (item.fileName && item.fileName.toLowerCase().includes(query)) ||
-      false;
-    const matchesTags = item.tags && item.tags.some(tag => tag && tag.toLowerCase().includes(query));
-    const matchesTab = activeTab === "all" || item.type === activeTab;
+       false;
+      const matchesTags = item.tags && item.tags.some(tag => tag && tag.toLowerCase().includes(query));
+      const matchesTab = activeTab === "all" || item.type === activeTab;
     return (matchesTitle || matchesTags) && matchesTab;
   });
 
+  // Find number of items in tpye
   const getItemCount = (type) => {
     return items.filter((item) => item.type === type).length;
   };
@@ -213,11 +248,36 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
   };
 
   // Handler to save edits
+  // Item Update no API backIn...................................................................
   const handleSaveItem = (updatedItem) => {
     setItems(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
     setShowItemModal(false);
     setSelectedItem(null);
   };
+
+  // const handleSaveItem = async (updatedItem) => {
+  //   try {
+  //     const res = await fetch(`/api/items/${updatedItem.id}`, {
+  //       method: 'PUT', // or 'PATCH' depending on your backend
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify(updatedItem),
+  //     });
+
+  //     if (!res.ok) throw new Error('Failed to update item');
+
+  //     // Update local state only if server responds successfully
+  //     const savedItem = await res.json();
+  //     setItems(items => items.map(i => i.id === savedItem.id ? savedItem : i));
+  //     setShowItemModal(false);
+  //     setSelectedItem(null);
+  //   } catch (error) {
+  //     console.error(error);
+  //     alert('Error updating item');
+  //   }
+  // };
+
 
   // Handler to delete item
   const handleDeleteItem = async (id) => {
@@ -259,23 +319,28 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
   };
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+    // <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-green-100 to-green-100">
         {/* Fixed Header Section */}
-        <div className="fixed top-0 left-0 right-0 bg-gradient-to-br from-gray-100 to-gray-200 z-10">
+        <div className="fixed top-0 left-0 right-0 bg-gradient-to-br z-10">
           <div className="max-w-7xl mx-auto p-6">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-5">
               <h1 className="text-3xl font-bold text-[rgb(13,148,136)]">Memora</h1>
               <ProfileDropdown />
             </div>
 
+            {/* USER PROFILE BAKIIIII...................................... */}
+
+
+
             {/* Search and Filter Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="bg-white rounded-xl shadow-lg p-4">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+
                 <div className="relative w-full md:w-96">
                   <input
                     type="text"
-                    placeholder="Search..."
+                    placeholder="What are you looking for?"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-[rgb(13,148,136)] focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
@@ -294,6 +359,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                     />
                   </svg>
                 </div>
+
                 <div className="flex flex-wrap justify-center gap-2">
                   <button
                     onClick={() => setActiveTab("all")}
@@ -305,6 +371,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                   >
                     All ({items.length})
                   </button>
+
                   <button
                     onClick={() => setActiveTab("note")}
                     className={`px-4 py-2 rounded-lg transition-all duration-200 ${
@@ -315,6 +382,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                   >
                     Notes ({getItemCount("note")})
                   </button>
+
                   <button
                     onClick={() => setActiveTab("image")}
                     className={`px-4 py-2 rounded-lg transition-all duration-200 ${
@@ -325,6 +393,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                   >
                     Images ({getItemCount("image")})
                   </button>
+
                   <button
                     onClick={() => setActiveTab("document")}
                     className={`px-4 py-2 rounded-lg transition-all duration-200 ${
@@ -335,6 +404,7 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                   >
                     Documents ({getItemCount("document")})
                   </button>
+
                   <button
                     onClick={() => setActiveTab("link")}
                     className={`px-4 py-2 rounded-lg transition-all duration-200 ${
@@ -345,16 +415,22 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                   >
                     Links ({getItemCount("link")})
                   </button>
+
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+
+        
+
         {/* Scrollable Content Section */}
-        <div className="pt-[200px] max-w-7xl mx-auto p-6">
+        <div className="pt-[180px] max-w-7xl mx-auto p-6">
+
           {/* Quick Action Buttons Row */}
-          <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-4 gap-4 mb-6">
+
             <div
               onClick={() => {
                 setEditingNoteId(null);
@@ -415,26 +491,32 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                 <h3 className="text-base font-semibold text-center text-teal-800">Add Link</h3>
                 <p className="text-xs text-teal-600 text-center mt-1">Save a new link</p>
               </div>
+
             </div>
           </div>
+
+
+
+
 
           {/* Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col border-2 ${selectedItem && selectedItem.id === item.id && showItemModal ? 'border-teal-500 ring-2 ring-teal-300' : 'border-transparent'}`}
+                className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col border-2 ${
+                  selectedItem && selectedItem.id === item.id && showItemModal
+                    ? 'border-teal-500 ring-2 ring-teal-300'
+                    : 'border-transparent'
+                }`}
                 onClick={() => handleCardClick(item)}
                 style={{ position: 'relative' }}
               >
                 <div className="p-6 flex flex-col flex-1">
-                  <div className="flex items-center justify-between mb-4">
+                  {/* Title */}
+                  <div className="flex items-center justify-between mb-3">
                     <h3 className="text-xl font-semibold text-teal-800 truncate w-full text-center">
-                      {/* Centered title for all types */}
-                      {item.type === "document" && (item.title || item.fileName)}
-                      {item.type === "link" && (item.title || item.url)}
-                      {item.type === "note" && item.title}
-                      {item.type === "image" && (item.title || item.fileName)}
+                      {item.title || item.fileName || item.url}
                     </h3>
                     <span className="text-sm text-teal-500">
                       {item.type === "note" && "📝"}
@@ -443,78 +525,81 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
                       {item.type === "link" && "🔗"}
                     </span>
                   </div>
-                  <div className="flex-1">
-                    {/* Document Card UI */}
+
+                  {/* Content */}
+                  <div className="flex-1 text-center">
                     {item.type === "document" && (
                       <div className="flex flex-col items-center justify-center h-full">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-4xl text-teal-500">📄</span>
-                          <a
-                            href={item.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-teal-700 underline text-lg font-medium"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {item.fileName}
-                          </a>
-                        </div>
+                        <span className="text-4xl text-teal-500 mb-2">📄</span>
+                        <a
+                          href={item.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-teal-700 underline text-lg font-medium"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {item.fileName}
+                        </a>
                       </div>
                     )}
-                    {/* Link Card UI */}
+
                     {item.type === "link" && (
-                      <div className="flex flex-col items-center justify-center h-full">
+                      <>
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-teal-600 underline text-lg font-medium text-center break-all hover:text-teal-800"
-                          onClick={e => e.stopPropagation()}
+                          className="text-teal-600 underline text-lg font-medium break-all hover:text-teal-800"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           {item.url}
                         </a>
                         {item.description && (
-                          <div className="text-xs text-gray-500 mt-1 text-center max-w-xs">{item.description}</div>
+                          <div className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">{item.description}</div>
                         )}
-                      </div>
+                      </>
                     )}
-                    {/* Image Card UI */}
+
                     {item.type === "image" && (
                       <>
-                        <div className="font-semibold text-base text-teal-800 mb-2 text-center">{item.title || item.fileName}</div>
                         <img
                           src={item.fileUrl}
                           alt={item.fileName}
-                          className="w-full object-cover rounded-lg"
+                          className="w-full object-cover rounded-lg mb-2"
                           style={{ maxHeight: 200 }}
                         />
                       </>
                     )}
-                    {/* Note Card UI */}
+
                     {item.type === "note" && (
-                      <div className="text-gray-600 mb-4 line-clamp-3 text-center">{item.content}</div>
+                      <div className="text-gray-600 mb-2 line-clamp-3">{item.content}</div>
                     )}
                   </div>
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="flex flex-col">
-                      <div className="mb-2 max-w-full overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-teal-300 scrollbar-track-teal-50" style={{ WebkitOverflowScrolling: 'touch' }}>
-                        {(item.tags || []).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-block px-2 py-1 bg-teal-100 text-teal-600 rounded-full text-xs mr-2 mb-1"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-500">Created: {new Date(item.createdAt).toLocaleDateString()}</span>
+
+                  {/* Tags */}
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2 mt-2 mb-2">
+                      {item.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="bg-teal-100 text-teal-800 text-sm font-medium px-2 py-1 rounded-full"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
                     </div>
-                    <span className="text-xs text-gray-500">Modified: {new Date(item.updatedAt).toLocaleDateString()}</span>
+                  )}
+
+                  {/* Created & Modified Dates */}
+                  <div className="flex justify-between items-center text-xs text-gray-500 mt-auto pt-2 border-t border-teal-50">
+                    <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
+                    <span>Modified: {new Date(item.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
 
           {/* Item Modal */}
           <ItemModal
@@ -526,28 +611,40 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
           />
         </div>
 
+
         {showNoteModal && (
           <NoteModal
             title={noteTitle}
             content={noteContent}
             setTitle={setNoteTitle}
             setContent={setNoteContent}
+            noteTags={noteTags}
+            setNoteTags={setNoteTags}
             onAdded={handleNoteSubmit}
             onClose={() => {
               setShowNoteModal(false);
               setEditingNoteId(null);
               setNoteTitle('');
               setNoteContent('');
+              setNoteTags([]);
             }}
           />
         )}
 
+        
         {showFileModal && (
           <FileUploadModal
             onUploaded={handleFileUploaded}
-            onClose={() => setShowFileModal(false)}
+            fileTags={fileTags}
+            setFileTags={setFileTags}
+            onClose={() => {
+              setShowFileModal(false);
+              setFileTags([]);
+            }}
           />
         )}
+
+
 
         {showLinkModal && (
           <LinkModal
@@ -557,18 +654,21 @@ const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
             setUrl={setLinkUrl}
             description={linkDescription}
             setDescription={setLinkDescription}
+            linkTags={linkTags}
+            setLinkTags={setLinkTags}
             onSaved={handleLinkSaved}
             onClose={() => {
               setShowLinkModal(false);
               setLinkTitle("");
               setLinkUrl("");
+              setLinkTags([]);
               setLinkDescription("");
             }}
           />
         )}
 
       </div>
-    </ErrorBoundary>
+    // </ErrorBoundary>
   );
 };
 

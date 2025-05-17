@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const FileUploadModal = ({ onClose, onUploaded }) => {
+const FileUploadModal = ({ onClose, onUploaded, fileTags, setFileTags}) => {
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
 
@@ -37,8 +37,21 @@ const FileUploadModal = ({ onClose, onUploaded }) => {
             />
           </div>
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-          <div className="flex justify-end gap-2">
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+            <input
+              type="text"
+              value={fileTags}
+              onChange={(e) => setFileTags(e.target.value)}
+              className="w-full p-2 border border-[rgb(13,148,136)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
+              placeholder="Enter tags (comma separated)"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 mt-3">
             <button 
+              type="file" 
               onClick={onClose} 
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
