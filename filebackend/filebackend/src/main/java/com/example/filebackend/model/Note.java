@@ -4,7 +4,10 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,4 +25,5 @@ public class Note {
     private String userId;
     private Date createdDate;
     private Date lastModifiedDate;
+    private List<String> tags=new ArrayList<>();
 }

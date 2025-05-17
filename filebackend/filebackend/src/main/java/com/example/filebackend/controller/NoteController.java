@@ -2,12 +2,15 @@ package com.example.filebackend.controller;
 
 import com.example.filebackend.dto.NoteRequest;
 import com.example.filebackend.dto.NoteResponse;
+import com.example.filebackend.service.KafkaProducerService;
 import com.example.filebackend.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -16,16 +19,35 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoteController {
     private final NoteService noteService;
+    private final KafkaProducerService kafkaProducerService;
 
     @PostMapping
     public ResponseEntity<NoteResponse> createNote(
             @RequestBody NoteRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(
-                noteService.createNote(request, userDetails.getUsername())
+        // Ensure the tags field is initialized (even if not provided)
+        if (request.getTags() == null) {
+            request.setTags(new ArrayList<>()); // Initialize as empty list if no tags provided
+        }
+
+        // Create the note
+        NoteResponse response = noteService.createNote(request, userDetails.getUsername());
+
+        // Send Kafka message to AI backend
+        String message = String.format(
+                "{ \"content_id\": \"%s\", \"content_type\": \"note\", \"text\": \"%s\", \"tags\": %s }",
+                response.getId(),
+                request.getContent().replace("\"", "\\\""), // Escape quotes in the content text
+                request.getTags() // Send the tags, even if empty
         );
+
+        kafkaProducerService.sendTagRequest(message);
+
+        // Return the note response
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping
     public ResponseEntity<List<NoteResponse>> getUserNotes(

@@ -2,6 +2,7 @@ package com.example.filebackend.controller;
 
 import com.example.filebackend.dto.LinkRequest;
 import com.example.filebackend.dto.LinkResponse;
+import com.example.filebackend.service.KafkaProducerService;
 import com.example.filebackend.service.LinkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,15 +17,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LinkController {
     private final LinkService linkService;
+    private final KafkaProducerService kafkaProducerService;
 
     @PostMapping
     public ResponseEntity<LinkResponse> saveLink(
             @RequestBody LinkRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(
-                linkService.saveLink(request, userDetails.getUsername())
+        LinkResponse response = linkService.saveLink(request, userDetails.getUsername());
+
+        // ✅ Send Kafka message
+        String message = String.format(
+                "{ \"content_id\": \"%s\", \"content_type\": \"link\", \"text\": \"%s\" }",
+                response.getId(),
+                request.getUrl().replace("\"", "\\\"")
         );
+        kafkaProducerService.sendTagRequest(message);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

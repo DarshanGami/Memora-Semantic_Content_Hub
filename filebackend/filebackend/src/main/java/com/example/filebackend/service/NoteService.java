@@ -8,6 +8,8 @@ import com.example.filebackend.model.Note;
 import com.example.filebackend.repository.NoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,17 +20,28 @@ public class NoteService {
     private final NoteRepository noteRepository;
 
     public NoteResponse createNote(NoteRequest request, String userId) {
+        // Ensure tags are initialized as an empty list if not provided
+        if (request.getTags() == null) {
+            request.setTags(new ArrayList<>());  // Initialize as an empty list if no tags are provided
+        }
+
+        // Create the note with the tags field included
         Note note = Note.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
                 .userId(userId)
+                .tags(request.getTags())  // Include the tags field (even if empty)
                 .createdDate(new Date())
                 .lastModifiedDate(new Date())
                 .build();
 
+        // Save the note to the database
         Note savedNote = noteRepository.save(note);
+
+        // Return the response after saving
         return mapToResponse(savedNote);
     }
+
 
     public List<NoteResponse> getUserNotes(String userId) {
         return noteRepository.findByUserId(userId).stream()

@@ -2,6 +2,7 @@ package com.example.filebackend.controller;
 
 import com.example.filebackend.dto.FileResponse;
 import com.example.filebackend.service.FileService;
+import com.example.filebackend.service.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,13 +19,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FileController {
     private final FileService fileService;
+    private final KafkaProducerService kafkaProducerService;
 
     @PostMapping("/upload")
     public ResponseEntity<FileResponse> uploadFile(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal UserDetails userDetails
     ) throws IOException {
-        return ResponseEntity.ok(fileService.uploadFile(file, userDetails.getUsername()));
+
+        FileResponse response = fileService.uploadFile(file, userDetails.getUsername());
+
+        // ✅ Only send for images
+        if (file.getContentType() != null && file.getContentType().startsWith("image/")) {
+            String message = String.format(
+                    "{ \"content_id\": \"%s\", \"content_type\": \"image\", \"text\": \"%s\" }",
+                    response.getId(),
+                    response.getFileUrl().replace("\"", "\\\"")
+            );
+            kafkaProducerService.sendTagRequest(message);
+        }
+
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
