@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,4 +19,6 @@ public class FileResponse {
     private long fileSize;
     private String fileUrl;
     private Date uploadDate;
+    private List<String> tags;
+
 }

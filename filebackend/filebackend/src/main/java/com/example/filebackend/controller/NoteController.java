@@ -34,17 +34,9 @@ public class NoteController {
         // Create the note
         NoteResponse response = noteService.createNote(request, userDetails.getUsername());
 
-        // Send Kafka message to AI backend
-        String message = String.format(
-                "{ \"content_id\": \"%s\", \"content_type\": \"note\", \"text\": \"%s\", \"tags\": %s }",
-                response.getId(),
-                request.getContent().replace("\"", "\\\""), // Escape quotes in the content text
-                request.getTags() // Send the tags, even if empty
-        );
+        // Send tag request
+        kafkaProducerService.sendTagRequest(response.getId(), "note", request.getContent(), request.getTags());
 
-        kafkaProducerService.sendTagRequest(message);
-
-        // Return the note response
         return ResponseEntity.ok(response);
     }
 

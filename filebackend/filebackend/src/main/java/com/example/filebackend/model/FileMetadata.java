@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -24,5 +25,6 @@ public class FileMetadata {
     private String fileUrl;
     private String userId;
     private Date uploadDate;
-    private List<String> tags;
+    private List<String> tags = new ArrayList<>();
+
 }

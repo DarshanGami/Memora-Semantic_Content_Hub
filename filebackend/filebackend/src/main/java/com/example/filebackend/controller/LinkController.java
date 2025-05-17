@@ -20,19 +20,20 @@ public class LinkController {
     private final KafkaProducerService kafkaProducerService;
 
     @PostMapping
-    public ResponseEntity<LinkResponse> saveLink(
+    public ResponseEntity<LinkResponse> addLink(
             @RequestBody LinkRequest request,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        // Save link using existing service
         LinkResponse response = linkService.saveLink(request, userDetails.getUsername());
 
-        // ✅ Send Kafka message
-        String message = String.format(
-                "{ \"content_id\": \"%s\", \"content_type\": \"link\", \"text\": \"%s\" }",
+        // Send Kafka tag request AFTER saving the link
+        kafkaProducerService.sendTagRequest(
                 response.getId(),
-                request.getUrl().replace("\"", "\\\"")
+                "link",
+                request.getUrl(),
+                null  // pass custom tags if any, else null or empty list
         );
-        kafkaProducerService.sendTagRequest(message);
 
         return ResponseEntity.ok(response);
     }

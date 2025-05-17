@@ -24,21 +24,31 @@ public class FileController {
     @PostMapping("/upload")
     public ResponseEntity<FileResponse> uploadFile(
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal UserDetails userDetails
-    ) throws IOException {
+            @AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
+        // 1. Upload file & save metadata
         FileResponse response = fileService.uploadFile(file, userDetails.getUsername());
+        String cloudinaryUrl = response.getFileUrl();
 
-        // ✅ Only send for images
-        if (file.getContentType() != null && file.getContentType().startsWith("image/")) {
-            String message = String.format(
-                    "{ \"content_id\": \"%s\", \"content_type\": \"image\", \"text\": \"%s\" }",
+        // 2. Determine content type for tag request
+        // Assuming images have fileType starting with "image/"
+        String contentType = response.getFileType() != null && response.getFileType().startsWith("image/")
+                ? "image" : "document";
+
+        // 3. For images, send tag request to AI backend for tag generation
+        if ("image".equalsIgnoreCase(contentType)) {
+            // We might not have textual description, so send empty or fileName as text
+            String textForTagging = response.getFileName() != null ? response.getFileName() : "";
+
+            kafkaProducerService.sendTagRequest(
                     response.getId(),
-                    response.getFileUrl().replace("\"", "\\\"")
+                    "image",
+                    cloudinaryUrl,
+                    null  // custom tags if any, else null
             );
-            kafkaProducerService.sendTagRequest(message);
+        } else {
+            System.out.println("Skipping AI tag request for document: " + response.getId());
         }
-
 
         return ResponseEntity.ok(response);
     }

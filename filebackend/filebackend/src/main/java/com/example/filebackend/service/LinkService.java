@@ -45,6 +45,7 @@ public class LinkService {
                 .title(link.getTitle())
                 .description(link.getDescription())
                 .savedDate(link.getSavedDate())
+                .tags(link.getTags())  // Include tags here
                 .build();
     }
 }

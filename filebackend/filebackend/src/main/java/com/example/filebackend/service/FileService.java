@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +35,10 @@ public class FileService {
                 .userId(userId)
                 .uploadDate(new Date())
                 .build();
+
+        if (metadata.getTags() == null) {
+            metadata.setTags(new ArrayList<>());
+        }
 
         FileMetadata savedMetadata = fileMetadataRepository.save(metadata);
 
@@ -80,6 +85,7 @@ public class FileService {
                 .fileSize(metadata.getFileSize())
                 .fileUrl(metadata.getFileUrl())
                 .uploadDate(metadata.getUploadDate())
+                .tags(new ArrayList<>())   // Include tags here
                 .build();
     }
 

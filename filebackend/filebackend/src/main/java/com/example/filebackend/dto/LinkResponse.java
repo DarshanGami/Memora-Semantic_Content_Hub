@@ -2,6 +2,7 @@ package com.example.filebackend.dto;
 
 import lombok.*;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -13,4 +14,5 @@ public class LinkResponse {
     private String title;
     private String description;
     private Date savedDate;
+    private List<String> tags;
 }
