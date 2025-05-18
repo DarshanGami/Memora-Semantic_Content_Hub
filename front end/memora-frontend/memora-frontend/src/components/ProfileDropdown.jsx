@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ProfileModal from './ProfileModal';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
 
 export default function ProfileDropdown() {
   const [open, setOpen] = useState(false);
@@ -51,9 +52,13 @@ export default function ProfileDropdown() {
       document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
     });
     localStorage.clear();
-    window.location.href = '/'; // Redirect to root (your login page)
-  };
 
+    // Set logout flag for showing toast on login page
+    localStorage.setItem('loggedOut', 'true');
+    toast.success('Logged out successfully!');
+    // Redirect to login page
+    window.location.href = '/';
+  };
 
 
   useEffect(() => {

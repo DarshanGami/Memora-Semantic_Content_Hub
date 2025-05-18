@@ -7,6 +7,7 @@ import ProfileDropdown from '../components/ProfileDropdown';
 import ItemModal from '../components/ItemModal';
 import ErrorBoundary from '../components/ErrorBoundary';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const DashboardPage = () => {
     const [files, setFiles] = useState([]);
@@ -48,92 +49,94 @@ const DashboardPage = () => {
     }, []);
 
     const fetchData = async () => {
-    try {
-      const token = localStorage.getItem('token');
+      try {
+        const token = localStorage.getItem('token');
 
-      if (!token) {
-        console.error('No token found');
-        return;
-      }
+        if (!token) {
+          console.error('No token found');
+          return;
+        }
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-
-      // 1. Fetch all data in parallel
-      const headersConfig = { headers };
-      const [fileRes, noteRes, linkRes] = await Promise.all([
-        api.get('/files', headersConfig),
-        api.get('/notes', headersConfig),
-        api.get('/links', headersConfig)
-      ]);
-
-      // 2. Process files
-      const files = fileRes.data.map(file => {
-        const extension = file.fileName?.split('.').pop().toLowerCase();
-        const type = imageExtensions.includes(extension) ? 'image' : 'document';
-
-        return {
-          ...file,
-          type,
-          createdAt: file.createdAt || file.uploadDate,
-          updatedAt:
-            file.updatedAt ||
-            file.modifiedDate ||
-            file.createdAt ||
-            file.uploadDate
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         };
-      });
 
-      // 3. Process notes
-      const notes = noteRes.data.map(note => ({
-        ...note,
-        type: 'note',
-        createdAt: note.createdAt || note.createdDate,
-        updatedAt:
-          note.updatedAt ||
-          note.modifiedDate ||
-          note.createdAt ||
-          note.createdDate
-      }));
+        // 1. Fetch all data in parallel
+        const headersConfig = { headers };
+        const [fileRes, noteRes, linkRes] = await Promise.all([
+          api.get('/files', headersConfig),
+          api.get('/notes', headersConfig),
+          api.get('/links', headersConfig)
+        ]);
 
-      // 4. Process links
-      const links = linkRes.data.map(link => ({
-        ...link,
-        type: 'link',
-        createdAt: link.createdAt || link.createdDate,
-        updatedAt:
-          link.updatedAt ||
-          link.modifiedDate ||
-          link.createdAt ||
-          link.createdDate
-      }));
+        // 2. Process files
+        const files = fileRes.data.map(file => {
+          const extension = file.fileName?.split('.').pop().toLowerCase();
+          const type = imageExtensions.includes(extension) ? 'image' : 'document';
 
-      // 5. Combine and sort all items by newest first
-      const allItems = [...notes, ...files, ...links].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
+          return {
+            ...file,
+            type,
+            createdAt: file.createdAt || file.uploadDate,
+            updatedAt:
+              file.updatedAt ||
+              file.modifiedDate ||
+              file.createdAt ||
+              file.uploadDate
+          };
+        });
 
-      setItems(allItems);
+        // 3. Process notes
+        const notes = noteRes.data.map(note => ({
+          ...note,
+          type: 'note',
+          createdAt: note.createdAt || note.createdDate,
+          updatedAt:
+            note.updatedAt ||
+            note.modifiedDate ||
+            note.createdAt ||
+            note.createdDate
+        }));
 
-    } catch (err) {
-      console.error('Error loading dashboard data:', {
-        error: err,
-        response: err.response,
-        message: err.message
-      });
+        // 4. Process links
+        const links = linkRes.data.map(link => ({
+          ...link,
+          type: 'link',
+          createdAt: link.createdAt || link.createdDate || new Date().toISOString(),
+          updatedAt:
+            link.updatedAt ||
+            link.modifiedDate ||
+            link.createdAt ||
+            link.createdDate ||
+            new Date().toISOString()
+        }));
 
-      // Display appropriate error message
-      if (err.response) {
-        alert(`Failed to load data: ${err.response.data?.message || err.response.statusText}`);
-      } else if (err.request) {
-        alert('Server not responding. Please make sure it is running.');
-      } else {
-        alert(`Error: ${err.message}`);
+
+        // 5. Combine and sort all items by newest first
+        const allItems = [...notes, ...files, ...links].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        setItems(allItems);
+
+      } catch (err) {
+        console.error('Error loading dashboard data:', {
+          error: err,
+          response: err.response,
+          message: err.message
+        });
+
+        // Display appropriate error message
+        if (err.response) {
+          alert(`Failed to load data: ${err.response.data?.message || err.response.statusText}`);
+        } else if (err.request) {
+          alert('Server not responding. Please make sure it is running.');
+        } else {
+          alert(`Error: ${err.message}`);
+        }
       }
-    }
-  };
+    };
 
 
   useEffect(() => {
@@ -150,12 +153,12 @@ const DashboardPage = () => {
         return;
       }
 
-      const parsedTags = noteTags
-            .split(',')                    // Split the input string by commas
-            .map(t => t.trim())            // Trim whitespace around each tag
-            .filter(t => t.length > 0);   // Remove any empty tags
+      // const parsedTags = noteTags
+      //       .split(',')                    // Split the input string by commas
+      //       .map(t => t.trim())            // Trim whitespace around each tag
+      //       .filter(t => t.length > 0);   // Remove any empty tags
 
-      console.log("hello", parsedTags);
+      // console.log("hello", parsedTags);
 
       if (editingNoteId) {
         await api.put(`/notes/${editingNoteId}`, {
@@ -163,6 +166,7 @@ const DashboardPage = () => {
           content: noteContent,
           // tags: parsedTags,
         });
+        // toast.success('Item updated!');
       } else {
         await api.post('/notes', {
           title: noteTitle,
@@ -170,7 +174,8 @@ const DashboardPage = () => {
           // tags: parsedTags,
         });
       }
-
+      
+      toast.success('Item added successfully!');
       // Clear fields and close modal
       setNoteTitle('');
       setNoteContent('');
@@ -179,12 +184,13 @@ const DashboardPage = () => {
       setShowNoteModal(false);
       fetchData(); // Refresh all data
     } catch (err) {
+      toast.error('Failed to save item!');
       console.error('Error saving note:', err);
-      alert('Failed to save note. Check console for details.');
+      // alert('Failed to save note. Check console for details.');
     }
   };
-
-
+  
+  
   const handleFileUploaded = async (file) => {
     try {
       const token = localStorage.getItem('token');
@@ -197,17 +203,40 @@ const DashboardPage = () => {
       });
       setShowFileModal(false);
       setFileTags([]);
+      toast.success('Item added successfully!');
       fetchData();
     } catch (err) {
-      console.error('Error uploading file:', err);
-      alert('Failed to upload file.');
+      // console.error('Error uploading file:', err);
+      // alert('Failed to upload file.');
+      toast.error('Failed to save item!');
     }
   };
-
+  
   // tags nu add karvanu baki chhe.......................................
   const handleLinkSaved = async () => {
+    // Simple URL validation function
+    const isValidUrl = (string) => {
+      try {
+        new URL(string); // if this doesn't throw, it's valid
+        return true;
+      } catch (_) {
+        return false;
+      }
+    };
+
+    // Check if URL is empty
+    if (!linkUrl || linkUrl.trim() === "") {
+      toast.error('URL is required!');
+      return;
+    }
+
+    // Check if URL is valid
+    if (!isValidUrl(linkUrl)) {
+      toast.error('Please enter a valid URL!');
+      return;
+    }
+
     try {
-      
       await api.post('/links', {
         url: linkUrl,
         title: linkTitle,
@@ -218,12 +247,14 @@ const DashboardPage = () => {
       setLinkUrl("");
       setLinkDescription("");
       setLinkTags([]);
+      toast.success('Item added successfully!');
       fetchData();
+      // console.log(items);
     } catch (err) {
-      console.error('Error saving link:', err);
-      alert('Failed to save link.');
+      toast.error('Failed to save item!');
     }
   };
+
 
   const filteredItems = items.filter((item) => {
     const query = searchQuery.toLowerCase();
@@ -312,9 +343,11 @@ const DashboardPage = () => {
       setItems(items => items.filter(i => i.id !== id));
       setShowItemModal(false);
       setSelectedItem(null);
+      toast.info('Item deleted.');
     } catch (err) {
+      toast.error('Failed to delete item!');
       console.error('Error deleting item:', err);
-      alert('Failed to delete item. Please try again.');
+      // alert('Failed to delete item. Please try again.');
     }
   };
 

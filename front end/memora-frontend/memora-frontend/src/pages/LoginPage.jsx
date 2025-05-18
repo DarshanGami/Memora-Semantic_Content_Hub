@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate , Link} from 'react-router-dom';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -12,14 +13,23 @@ const LoginPage = () => {
     setIsVisible(true);
   }, []);
 
+  // useEffect(() => {
+  //   if (localStorage.getItem('loggedOut')) {
+  //     toast.success('Logged out successfully!');
+  //     localStorage.removeItem('loggedOut');
+  //   }
+  // }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const res = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       navigate('/dashboard');
+      toast.success('Login successful!');
     } catch (err) {
-      alert('Login failed');
+      // alert('Login failed');
+      toast.error('Login failed. Please check credentials.');
     }
   };
 

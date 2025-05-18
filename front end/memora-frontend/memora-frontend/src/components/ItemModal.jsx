@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   const [title, setTitle] = useState('');
@@ -25,9 +26,11 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       await navigator.clipboard.writeText(text);
       setCopySuccess('Copied!');
       setTimeout(() => setCopySuccess(''), 2000);
+      toast.info('Item copied!');
     } catch (err) {
       console.error('Failed to copy:', err);
       setCopySuccess('Failed to copy');
+      // toast.info('Fail copied!');
     }
   };
 
@@ -45,6 +48,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
+      toast.success('Download started!');
     } catch (err) {
       console.error('Failed to download:', err);
       alert('Failed to download file');

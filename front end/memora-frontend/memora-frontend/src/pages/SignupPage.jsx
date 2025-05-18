@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -28,10 +29,12 @@ const SignupPage = () => {
     e.preventDefault();
     try {
       await api.post('/auth/signup', formData);
-      alert('Signup successful! Please login.');
+      // alert('Signup successful! Please login.');
       navigate('/');
+      toast.success('Signup successful!');
     } catch (err) {
-      alert('Signup failed: ' + (err.response?.data?.message || err.message));
+      toast.error('Signup failed!');
+      // alert('Signup failed: ' + (err.response?.data?.message || err.message));
     }
   };
 
