@@ -1,0 +1,302 @@
+{
+	"info": {
+		"_postman_id": "ff87f5c2-6838-4613-b9ed-98ea972cbf14",
+		"name": "trial",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43592665",
+		"_collection_link": "https://mitulsudani.postman.co/workspace/Mitul-Sudani's-Workspace~b23ff31a-36f5-4acf-8df5-1dd3a3961969/collection/43592665-ff87f5c2-6838-4613-b9ed-98ea972cbf14?action=share&source=collection_link&creator=43592665"
+	},
+	"item": [
+		{
+			"name": "note upload",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"userId\": \"u001\",\r\n  \"title\": \"crazy\",\r\n  \"content\": \"Pradyumna was the son of Krishna and the sixty-first grandson of Adinarayana. His mother was Rukmini, whom Krishna had eloped with from Vidarbha during her swayamvara on her request. Pradyumna was born in Dvaraka and was the reincarnation of the demigod Kamadeva, a deity who was burnt to ashes by the fury of Shiva.\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/notes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"notes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "file upload",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "postman-cloud:///1f02e3ee-6714-4b80-86c2-2f504b695da6"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/files/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"files",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "link upload",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"url\": \"https://stake.com\",\r\n  \"title\": \"maala maal\",\r\n  \"description\": \"best way to try luck.\",\r\n  \"tags\": []   // Optional: can be omitted or empty array\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/links",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"links"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "note custom tags",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"customTag\": \"lasttestintag\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/content/note/682857e86c97c074c36462e9/custom-tags",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"content",
+						"note",
+						"682857e86c97c074c36462e9",
+						"custom-tags"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "image custom tags",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"customTag\": \"this is image tags testing2\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/content/image/6828eb21e0028f79a4f8e2ee/custom-tags",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"content",
+						"image",
+						"6828eb21e0028f79a4f8e2ee",
+						"custom-tags"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "file cusom tags",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"customTag\": \"this is file tags testing2\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/content/file/6828ef5c51ae02627980f848/custom-tags",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"content",
+						"file",
+						"6828ef5c51ae02627980f848",
+						"custom-tags"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "link custom tags",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzQ3MDYzOSwiZXhwIjoxNzQ3NTU3MDM5fQ.zO2UfRcvWsrG-srw0Cy13O4WEJlIRWxUP7_ugRd23Wg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"customTag\": \"yes yes ...\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/content/link/6828f4263f6d0034cccf8427/custom-tags",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"content",
+						"link",
+						"6828f4263f6d0034cccf8427",
+						"custom-tags"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
