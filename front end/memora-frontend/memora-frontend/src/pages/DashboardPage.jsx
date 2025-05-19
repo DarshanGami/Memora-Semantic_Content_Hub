@@ -340,35 +340,11 @@ const DashboardPage = () => {
       setNoteContent(updatedItem.content);
       setNoteTags(updatedItem.tags || []);
       setEditingNoteId(updatedItem.id);
-      
     }
     // setItems(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
     setShowItemModal(false);
     setSelectedItem(null);
   };
-
-  // const handleSaveItem = async (updatedItem) => {
-  //   try {
-  //     const res = await fetch(`/api/items/${updatedItem.id}`, {
-  //       method: 'PUT', // or 'PATCH' depending on your backend
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(updatedItem),
-  //     });
-
-  //     if (!res.ok) throw new Error('Failed to update item');
-
-  //     // Update local state only if server responds successfully
-  //     const savedItem = await res.json();
-  //     setItems(items => items.map(i => i.id === savedItem.id ? savedItem : i));
-  //     setShowItemModal(false);
-  //     setSelectedItem(null);
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert('Error updating item');
-  //   }
-  // };
 
 
   // Handler to delete item
