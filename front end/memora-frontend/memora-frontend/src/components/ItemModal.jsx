@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 
 export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState([]);
   const [copySuccess, setCopySuccess] = useState('');
+  const [inputValue, setInputValue] = useState("");
 
   // Reset fields to item's current values whenever item changes
   useEffect(() => {
@@ -16,7 +18,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
       setContent(item.content || '');
       setUrl(item.url || item.fileUrl || '');
       setDescription(item.description || '');
-      setTags(item.tags ? item.tags.join(', ') : '');
+      setTags(item.tags);
     }
   }, [item]);
   
@@ -64,20 +66,25 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   const handleSave = () => {
     let updated = { ...item, title };
 
-    if (item.type === 'note') updated.content = content;
-
+    if (item.type === 'note'){
+      updated.title = title;
+      updated.content = content;
+    } 
+    
     if (item.type === 'link') {
+      updated.title = title;
       updated.url = url;
       updated.description = description;
     }
-
+    
     if (item.type === 'image' || item.type === 'document') {
+      updated.title = title;
       updated.fileName = title;
       updated.fileUrl = url;
     }
 
     // Save tags for ALL item types
-    updated.tags = tags.split(',').map(t => t.trim());
+    updated.tags = tags;
     onSave(updated);
   };
 
@@ -89,7 +96,44 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   };
 
 
+  
+  const addTag = async (type, id, tagName) => {
+    if (!tagName.trim()) return;
+
+    // ← Make sure this matches how you actually stored it:
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.error('No auth token found - please log in first');
+      return;
+    }
+
+    try {
+      const { data } = await axios.patch(
+        `http://localhost:8080/api/content/${type}/${id}/custom-tags`,
+        { tagName },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,  // ← use `token`, not `receivedToken`
+          },
+        }
+      );
+      console.log('Tag updated:', data);
+      setTags(data.tags || [...tags, tagName]);
+      setInputValue('');
+    } catch (err) {
+      console.error('Error updating tags:', err.response?.data || err.message);
+    }
+  };
+
+
+  const removeTag = (index) => {
+    setTags(prev => prev.filter((_, i) => i !== index));
+  };
+
+
   return (
+    
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-all duration-300">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-fadeInUp">
         <div className="p-6">
@@ -213,14 +257,57 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
             )}
 
             {/* Tags always editable for all*/}
-            <div>
+            {/* <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Tags (comma separated)</label>
               <input
                 className="w-full p-2 border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 value={tags}
                 onChange={e => setTags(e.target.value)}
               />
+            </div> */}
+
+            <div className="p-4 max-w-md mx-auto">
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  placeholder="Enter one tag"
+                  className="flex-1 p-2 border rounded"
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTag(item.type, item.id, inputValue);  // pass the dynamic type here
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => addTag(item.type, item.id, inputValue)}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  Add Tag
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center bg-gray-200 text-gray-800 px-3 py-1 rounded-full"
+                  >
+                    <span className="mr-2">{tag}</span>
+                    <button
+                      onClick={() => removeTag(index)}
+                      className="text-red-500 hover:text-red-700 font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
+
+
 
             <div className="flex items-center justify-between mt-4">
               <span className="text-xs text-gray-400">{item.date}</span>

@@ -62,7 +62,7 @@ const NoteModal = ({ title, content, setTitle, setContent, noteTags, setNoteTags
               />
             </div>
             
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
               <input
                 type="text"
@@ -71,7 +71,7 @@ const NoteModal = ({ title, content, setTitle, setContent, noteTags, setNoteTags
                 className="w-full p-2 border border-[rgb(13,148,136)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
                 placeholder="Enter tags (comma separated)"
               />
-            </div>
+            </div> */}
 
             <div className="flex justify-end gap-2 mt-6">
               <button 
