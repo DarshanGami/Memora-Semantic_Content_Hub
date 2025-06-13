@@ -25,5 +25,7 @@ public class Note {
     private String userId;
     private Date createdDate;
     private Date lastModifiedDate;
-    private List<String> tags=new ArrayList<>();
+
+    @Builder.Default
+    private List<String> tags = new ArrayList<>();
 }

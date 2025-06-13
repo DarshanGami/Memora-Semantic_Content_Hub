@@ -1,35 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate , Link} from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const ResetPasswordForm = () => {
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const token = searchParams.get('token');
 
   useEffect(() => {
     setIsVisible(true);
-  }, []);
+    if (!token) {
+      toast.error('Invalid or missing reset token');
+      navigate('/login');
+    }
+  }, [token, navigate]);
 
-  // useEffect(() => {
-  //   if (localStorage.getItem('loggedOut')) {
-  //     toast.success('Logged out successfully!');
-  //     localStorage.removeItem('loggedOut');
-  //   }
-  // }, []);
-
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
+      return;
+    }
+
     try {
-      const res = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      navigate('/dashboard');
-      toast.success('Login successful!');
+      await api.post('/auth/reset-password', {
+        token,
+        newPassword
+      });
+      
+      toast.success('Password reset successful! Please login with your new password.');
+      navigate('/login');
     } catch (err) {
-      // alert('Login failed');
-      toast.error('Login failed. Please check credentials.');
+      toast.error('Failed to reset password. Please try again.');
     }
   };
 
@@ -80,18 +92,18 @@ const LoginPage = () => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-teal-600"></div>
           
           <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">
-            Memora
+            Reset Password
           </h1>
           
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="slide-in" style={{ animationDelay: '0.1s' }}>
                 <input 
-                  type="email" 
+                  type="password" 
                   className="w-full p-3 border border-gray-300 rounded-lg input-focus"
-                  placeholder="Email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="New Password" 
+                  value={newPassword} 
+                  onChange={(e) => setNewPassword(e.target.value)} 
                   required 
                 />
               </div>
@@ -100,19 +112,11 @@ const LoginPage = () => {
                 <input 
                   type="password" 
                   className="w-full p-3 border border-gray-300 rounded-lg input-focus"
-                  placeholder="Password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="Confirm New Password" 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
                   required 
                 />
-                <div className="mt-2 text-right">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-teal-600 hover:text-teal-700 transition-colors duration-200 hover:underline"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
               </div>
             </div>
             
@@ -121,25 +125,14 @@ const LoginPage = () => {
                 type="submit" 
                 className="w-full bg-teal-600 text-white py-3 rounded-lg text-lg font-semibold shadow-lg button-hover pulse-animation"
               >
-                Login
+                Reset Password
               </button>
             </div>
           </form>
-          
-          <div className="slide-in" style={{ animationDelay: '0.4s' }}>
-            <p className="mt-6 text-center text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link
-                  to="/signup"
-                  className="text-teal-600 font-semibold hover:text-teal-700 transition-colors duration-200 hover:underline">
-                  Sign Up
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default ResetPasswordForm; 

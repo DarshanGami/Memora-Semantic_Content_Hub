@@ -33,7 +33,7 @@ public class TagResponseConsumer {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @KafkaListener(topics = "tag-response", groupId = "main-backend-consumer")
+    @KafkaListener(topics = "tag-response", groupId = "main-backend-consumer-1")
     public void consume(String message) {
         try {
             Map<String, Object> map = objectMapper.readValue(message, Map.class);

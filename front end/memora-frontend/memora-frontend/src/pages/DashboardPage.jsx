@@ -35,8 +35,14 @@ const DashboardPage = () => {
     const [editingLinkId, setEditingLinkId] = useState(null);
 
     const [items, setItems] = useState([]);
+    const [searchItems, setsearchItems] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [showItemModal, setShowItemModal] = useState(false);
+
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    // const [updatedDate, setUpdateDate] = useState('');
 
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
 
@@ -141,7 +147,7 @@ const DashboardPage = () => {
       }
     };
 
-    console.log("papp", items);
+    
 
     useEffect(() => {
       console.log("Updated items:", items);
@@ -152,6 +158,7 @@ const DashboardPage = () => {
   const handleNoteSubmit = async () => {
     try {
       const token = localStorage.getItem('token');
+      // console.log("Main-Page", token);
       if (!token) {
         alert('No authentication token found. Please login again.');
         return;
@@ -169,6 +176,7 @@ const DashboardPage = () => {
           type: 'note',
           createdAt: response.data.createdAt || response.data.createdDate || new Date().toISOString(),
           updatedAt: response.data.updatedAt || response.data.modifiedDate || response.data.createdAt || new Date().toISOString(),
+          // updatedAt: Date.now(),
           tags: response.data.tags || [],
         };
 
@@ -300,22 +308,38 @@ const DashboardPage = () => {
   };
 
 
-
   const filteredItems = items.filter((item) => {
     const query = searchQuery.toLowerCase();
+
     const matchesTitle =
       (item.title && item.title.toLowerCase().includes(query)) ||
       (item.fileName && item.fileName.toLowerCase().includes(query)) ||
-       false;
-      const matchesTags = item.tags && item.tags.some(tag => tag && tag.toLowerCase().includes(query));
-      const matchesTab = activeTab === "all" || item.type === activeTab;
-    return (matchesTitle || matchesTags) && matchesTab;
+      (item.url && item.url.toLowerCase().includes(query));
+
+    const matchesTags =
+      item.tags && item.tags.some(tag => tag && tag.toLowerCase().includes(query));
+
+    const matchesContent =
+      item.content && item.content.toLowerCase().includes(query);
+
+    return matchesTitle || matchesTags || matchesContent;
   });
 
-  // Find number of items in tpye
+
+  // Find number of items in type
   const getItemCount = (type) => {
-    return items.filter((item) => item.type === type).length;
+    // If we're searching via API, use searchResults
+    if (isSearching) {
+      return searchResults.filter(item => item.type === type).length;
+    }
+    // If we have a local search query, use filteredItems
+    if (searchQuery) {
+      return filteredItems.filter(item => item.type === type).length;
+    }
+    // Otherwise use all items
+    return items.filter(item => item.type === type).length;
   };
+
 
   // Handler to open modal with item details
   const handleCardClick = (item) => {
@@ -325,23 +349,19 @@ const DashboardPage = () => {
 
   useEffect(() => {
     if (editingNoteId) {
-      // Only call handleNoteSubmit after states are set and editingNoteId changes
       handleNoteSubmit();
       window.location.reload();
     }
   }, [editingNoteId]);
 
   // Handler to save edits
-  // Item Update no API backIn...................................................................
   const handleSaveItem = (updatedItem) => {
-    // console.log("ok", updatedItem);
     if(updatedItem.type === "note"){
       setNoteTitle(updatedItem.title);
       setNoteContent(updatedItem.content);
-      setNoteTags(updatedItem.tags || []);
+      setNoteTags(updatedItem.tags || []);  
       setEditingNoteId(updatedItem.id);
     }
-    // setItems(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
     setShowItemModal(false);
     setSelectedItem(null);
   };
@@ -384,7 +404,116 @@ const DashboardPage = () => {
     } catch (err) {
       toast.error('Failed to delete item!');
       console.error('Error deleting item:', err);
-      // alert('Failed to delete item. Please try again.');
+    }
+  };
+
+
+  // Search Functionality 
+  const handleSearch = async (query) => {
+    if (!query) {
+      setSearchResults([]);
+      setSearchQuery('');
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchQuery(query);
+
+    try {
+      const [imageRes, noteRes, linkRes] = await Promise.all([
+        axios.get(`http://localhost:5000/api/search/image?q=${query}`),
+        axios.get(`http://localhost:5000/api/search/note?q=${query}`),
+        axios.get(`http://localhost:5000/api/search/link?q=${query}`)
+      ]);
+
+      // Combine and format results
+      const combinedResults = [
+        ...imageRes.data.matches.map(item => ({ 
+          ...item, 
+          type: "image",
+          id: item.content_id || item.note_id 
+        })),
+        ...noteRes.data.matches.map(item => ({ 
+          ...item, 
+          type: "note",
+          id: item.note_id 
+        })),
+        ...linkRes.data.matches.map(item => ({ 
+          ...item, 
+          type: "link",
+          id: item.content_id || item.note_id 
+        }))
+      ];
+
+      // Map search results to full item data from local items
+      const fullDataResults = combinedResults
+        .map(searchItem => items.find(localItem => localItem.id === searchItem.id && localItem.type === searchItem.type))
+        .filter(Boolean); // Remove any not found
+
+      setSearchResults(fullDataResults);
+
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    }
+  };
+
+  const filterItemsBySearch = (items, searchItems) => {
+    if (!searchItems.length) return items;
+    
+    const searchMap = new Map();
+
+    // Build a map of valid (id, type) pairs from searchItems
+    searchItems.forEach(({ note_id, content_id, type }) => {
+      const id = note_id || content_id;
+      if (id && type) {
+        searchMap.set(`${id}_${type}`, true);
+      }
+    });
+
+    // Filter items by matching id and type
+    return items.filter((item) => {
+      const id = item.id;
+      const type = item.type;
+      return id && type && searchMap.has(`${id}_${type}`);
+    });
+  };
+
+  // Get the final filtered items based on search and active tab
+  const getDisplayItems = () => {
+    let result;
+
+    // If we're searching via API, use searchResults
+    if (isSearching) {
+      result = searchResults;
+    }
+    // If we have a local search query, use filteredItems
+    else if (searchQuery) {
+      result = filteredItems;
+    }
+    // Otherwise use all items
+    else {
+      result = items;
+    }
+
+    // Apply tab filter
+    if (activeTab !== "all") {
+      result = result.filter(item => item.type === activeTab);
+    }
+
+    return result;
+  };
+
+  const displayItems = getDisplayItems();
+
+  // Update the search input handler
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (!value) {
+      setIsSearching(false);
+      setSearchResults([]);
     }
   };
 
@@ -398,7 +527,6 @@ const DashboardPage = () => {
               <h1 className="text-3xl font-bold text-[rgb(13,148,136)]">Memora</h1>
               <ProfileDropdown />
             </div>
-
             {/* USER PROFILE BAKIIIII...................................... */}
 
 
@@ -407,27 +535,35 @@ const DashboardPage = () => {
             <div className="bg-white rounded-xl shadow-lg p-4">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
-                <div className="relative w-full md:w-96">
-                  <input
-                    type="text"
-                    placeholder="What are you looking for?"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-[rgb(13,148,136)] focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
-                  />
-                  <svg
-                    className="absolute left-3 top-2.5 h-5 w-5 text-[rgb(13,148,136)]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                <div className="relative w-full md:w-96 flex">
+                  <div className="relative flex-grow">
+                    <input
+                      type="text"
+                      placeholder="What are you looking for?"
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      className="w-full pl-10 pr-4 py-2 rounded-l-lg border border-[rgb(13,148,136)] focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
                     />
-                  </svg>
+                    <svg
+                      className="absolute left-3 top-2.5 h-5 w-5 text-[rgb(13,148,136)]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                  <button
+                    onClick={() => handleSearch(searchQuery)}
+                    className="bg-[rgb(13,148,136)] text-white px-4 rounded-r-lg hover:bg-teal-700 transition"
+                  >
+                    Search
+                  </button>
                 </div>
 
                 <div className="flex flex-wrap justify-center gap-2">
@@ -439,7 +575,7 @@ const DashboardPage = () => {
                         : "bg-teal-100 text-teal-700 hover:bg-teal-200"
                     }`}
                   >
-                    All ({items.length})
+                    All ({displayItems.length})
                   </button>
 
                   <button
@@ -485,7 +621,6 @@ const DashboardPage = () => {
                   >
                     Links ({getItemCount("link")})
                   </button>
-
                 </div>
               </div>
             </div>
@@ -494,13 +629,11 @@ const DashboardPage = () => {
 
 
         
-
         {/* Scrollable Content Section */}
         <div className="pt-[180px] max-w-7xl mx-auto p-6">
 
           {/* Quick Action Buttons Row */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-
             <div
               onClick={() => {
                 setEditingNoteId(null);
@@ -574,104 +707,122 @@ const DashboardPage = () => {
 
 
           {/* Items Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col border-2 ${
-                  selectedItem && selectedItem.id === item.id && showItemModal
-                    ? 'border-teal-500 ring-2 ring-teal-300'
-                    : 'border-transparent'
-                }`}
-                onClick={() => handleCardClick(item)}
-                style={{ position: 'relative' }}
-              >
-                <div className="p-6 flex flex-col flex-1">
-                  {/* Title */}
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xl font-semibold text-teal-800 truncate w-full text-center">
-                      {item.title || item.fileName || item.url}
-                    </h3>
-                    <span className="text-sm text-teal-500">
-                      {item.type === "note" && "📝"}
-                      {item.type === "image" && "🖼️"}
-                      {item.type === "document" && "📄"}
-                      {item.type === "link" && "🔗"}
-                    </span>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[200px] relative">
+            {displayItems.length === 0 ? (
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex flex-col justify-center items-center">
+                <span className="text-4xl text-gray-300 mb-2">😕</span>
+                <div className="text-xl font-semibold text-gray-400">No items</div>
+              </div>
+            ) : (
+              displayItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer flex flex-col border-2 ${
+                    selectedItem && selectedItem.id === item.id && showItemModal
+                      ? 'border-teal-500 ring-2 ring-teal-300'
+                      : 'border-transparent'
+                  }`}
+                  onClick={() => handleCardClick(item)}
+                  style={{ position: 'relative' }}
+                >
+                  <div className="p-6 flex flex-col flex-1">
+                    {/* Title */}
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xl font-semibold text-teal-800 truncate w-full text-center">
+                        {item.title || item.fileName || item.url}
+                      </h3>
+                      <span className="text-sm text-teal-500">
+                        {item.type === "note" && "📝"}
+                        {item.type === "image" && "🖼️"}
+                        {item.type === "document" && "📄"}
+                        {item.type === "link" && "🔗"}
+                      </span>
+                    </div>
 
-                  {/* Content */}
-                  <div className="flex-1 text-center">
-                    {item.type === "document" && (
-                      <div className="flex flex-col items-center justify-center h-full">
-                        <span className="text-4xl text-teal-500 mb-2">📄</span>
-                        <a
-                          href={item.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-teal-700 underline text-lg font-medium"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {item.fileName}
-                        </a>
+                    {/* Content */}
+                    <div className="flex-1 text-center">
+                      {item.type === "document" && (
+                        <div className="flex flex-col items-center justify-center h-full">
+                          <span className="text-4xl text-teal-500 mb-2">📄</span>
+                          <a
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-700 underline text-lg font-medium"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {item.fileName}
+                          </a>
+                        </div>
+                      )}
+
+                      {item.type === "link" && (
+                        <>
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-teal-600 underline text-lg font-medium break-all hover:text-teal-800"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {item.url}
+                          </a>
+                          {item.description && (
+                            <div className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">{item.description}</div>
+                          )}
+                        </>
+                      )}
+
+                      {item.type === "image" && (
+                        <>
+                          <img
+                            src={item.fileUrl}
+                            alt={item.fileName}
+                            className="w-full object-cover rounded-lg mb-2"
+                            style={{ maxHeight: 200 }}
+                          />
+                        </>
+                      )}
+
+                      {item.type === "note" && (
+                        <div className="text-gray-600 mb-2 line-clamp-3">{item.content}</div>
+                      )}
+                    </div>
+
+                    {/* Tags */}
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="mt-2 mb-2 max-h-10 overflow-y-hidden hover:overflow-y-auto scrollbar-hide">
+                        {/* First line - prominent tags (first row) */}
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {item.tags.slice(0, 8).map((tag, index) => (
+                            <span
+                              key={`primary-${index}`}
+                              className="bg-teal-100 text-teal-800 text-sm font-medium px-2 py-1 rounded-full mb-1"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        
+                        {/* Second line - remaining tags with lower opacity */}
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {item.tags.slice(8).map((tag, index) => (
+                            <span
+                              key={`secondary-${index}`}
+                              className="bg-teal-100 text-teal-800 text-sm font-medium px-2 py-1 rounded-full mb-1 opacity-60"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
 
-                    {item.type === "link" && (
-                      <>
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-teal-600 underline text-lg font-medium break-all hover:text-teal-800"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {item.url}
-                        </a>
-                        {item.description && (
-                          <div className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">{item.description}</div>
-                        )}
-                      </>
-                    )}
 
-                    {item.type === "image" && (
-                      <>
-                        <img
-                          src={item.fileUrl}
-                          alt={item.fileName}
-                          className="w-full object-cover rounded-lg mb-2"
-                          style={{ maxHeight: 200 }}
-                        />
-                      </>
-                    )}
-
-                    {item.type === "note" && (
-                      <div className="text-gray-600 mb-2 line-clamp-3">{item.content}</div>
-                    )}
-                  </div>
-
-                  {/* Tags */}
-                  {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-2 mt-2 mb-2">
-                      {item.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="bg-teal-100 text-teal-800 text-sm font-medium px-2 py-1 rounded-full"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Created & Modified Dates */}
-                  <div className="flex justify-between items-center text-xs text-gray-500 mt-auto pt-2 border-t border-teal-50">
-                    <span>Created: {new Date(item.createdAt).toLocaleDateString()}</span>
-                    <span>Modified: {new Date(item.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
 

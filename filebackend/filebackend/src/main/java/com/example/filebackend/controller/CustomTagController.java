@@ -5,10 +5,13 @@ import com.example.filebackend.repository.LinkRepository;
 import com.example.filebackend.repository.NoteRepository;
 import com.example.filebackend.service.AiBackendService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
@@ -19,8 +22,9 @@ public class CustomTagController {
     private final NoteRepository noteRepository;
     private final FileMetadataRepository fileMetadataRepository;
     private final LinkRepository linkRepository;
-    private final AiBackendService aiBackendService;  // Internal service to call AI backend
+    private final AiBackendService aiBackendService;
 
+    // ✅ Add custom tag
     @PatchMapping("/{contentType}/{contentId}/custom-tags")
     public ResponseEntity<?> addCustomTags(
             @PathVariable String contentType,
@@ -32,7 +36,6 @@ public class CustomTagController {
             return ResponseEntity.badRequest().body("customTag cannot be empty");
         }
 
-        // Validate content exists
         boolean exists = switch (contentType.toLowerCase()) {
             case "note" -> noteRepository.existsById(contentId);
             case "file", "image", "document" -> fileMetadataRepository.existsById(contentId);
@@ -43,38 +46,96 @@ public class CustomTagController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Content not found");
         }
 
-        // Call AI backend to generate embeddings and store vectors for this custom tag
         aiBackendService.generateAndStoreCustomTagVectors(contentType, contentId, customTag);
-
-        // Update tags array in DB - merge existing + new tag
         updateTagsArray(contentType, contentId, Collections.singletonList(customTag));
 
         return ResponseEntity.ok("Custom tag added successfully");
     }
 
+    // ✅ Delete custom tag
+    @DeleteMapping("/{contentType}/{contentId}/custom-tags/{tagName}")
+    public ResponseEntity<?> deleteCustomTag(
+            @PathVariable String contentType,
+            @PathVariable String contentId,
+            @PathVariable String tagName
+    ) {
+        boolean exists = switch (contentType.toLowerCase()) {
+            case "note" -> noteRepository.existsById(contentId);
+            case "file", "image", "document" -> fileMetadataRepository.existsById(contentId);
+            case "link" -> linkRepository.existsById(contentId);
+            default -> false;
+        };
+
+        if (!exists) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Content not found");
+        }
+
+        removeTagFromDatabase(contentType, contentId, tagName);
+
+        // Call AI backend to delete embedding via DELETE with query parameters
+        try {
+            String aiBackendUrl = String.format(
+                    "http://localhost:5000/api/delete/%s-tag?content_id=%s&custom_tag=%s",
+                    contentType.toLowerCase(),
+                    URLEncoder.encode(contentId, StandardCharsets.UTF_8),
+                    URLEncoder.encode(tagName, StandardCharsets.UTF_8)
+            );
+
+            aiBackendService.getRestTemplate().exchange(
+                    aiBackendUrl,
+                    HttpMethod.DELETE,
+                    null,
+                    Void.class
+            );
+
+            System.out.println("Successfully deleted tag vector from AI backend");
+
+        } catch (Exception e) {
+            System.err.println("Failed to call AI backend for deletion: " + e.getMessage());
+        }
+
+        return ResponseEntity.ok("Custom tag deleted successfully");
+    }
+
+    // ✅ Update tag list in content
     private void updateTagsArray(String contentType, String contentId, List<String> newTags) {
         switch (contentType.toLowerCase()) {
-            case "note" -> {
-                noteRepository.findById(contentId).ifPresent(note -> {
-                    List<String> merged = mergeTags(note.getTags(), newTags);
-                    note.setTags(merged);
-                    noteRepository.save(note);
-                });
-            }
-            case "file", "image", "document" -> {
-                fileMetadataRepository.findById(contentId).ifPresent(file -> {
-                    List<String> merged = mergeTags(file.getTags(), newTags);
-                    file.setTags(merged);
-                    fileMetadataRepository.save(file);
-                });
-            }
-            case "link" -> {
-                linkRepository.findById(contentId).ifPresent(link -> {
-                    List<String> merged = mergeTags(link.getTags(), newTags);
-                    link.setTags(merged);
-                    linkRepository.save(link);
-                });
-            }
+            case "note" -> noteRepository.findById(contentId).ifPresent(note -> {
+                List<String> merged = mergeTags(note.getTags(), newTags);
+                note.setTags(merged);
+                noteRepository.save(note);
+            });
+            case "file", "image", "document" -> fileMetadataRepository.findById(contentId).ifPresent(file -> {
+                List<String> merged = mergeTags(file.getTags(), newTags);
+                file.setTags(merged);
+                fileMetadataRepository.save(file);
+            });
+            case "link" -> linkRepository.findById(contentId).ifPresent(link -> {
+                List<String> merged = mergeTags(link.getTags(), newTags);
+                link.setTags(merged);
+                linkRepository.save(link);
+            });
+        }
+    }
+
+    // ✅ Remove a tag from content
+    private void removeTagFromDatabase(String contentType, String contentId, String tagToRemove) {
+        switch (contentType.toLowerCase()) {
+            case "note" -> noteRepository.findById(contentId).ifPresent(note -> {
+                List<String> updated = filterOutTag(note.getTags(), tagToRemove);
+                note.setTags(updated);
+                noteRepository.save(note);
+            });
+            case "file", "image", "document" -> fileMetadataRepository.findById(contentId).ifPresent(file -> {
+                List<String> updated = filterOutTag(file.getTags(), tagToRemove);
+                file.setTags(updated);
+                fileMetadataRepository.save(file);
+            });
+            case "link" -> linkRepository.findById(contentId).ifPresent(link -> {
+                List<String> updated = filterOutTag(link.getTags(), tagToRemove);
+                link.setTags(updated);
+                linkRepository.save(link);
+            });
         }
     }
 
@@ -84,5 +145,11 @@ public class CustomTagController {
         set.addAll(newTags);
         return new ArrayList<>(set);
     }
-}
 
+    private List<String> filterOutTag(List<String> tags, String tagToRemove) {
+        if (tags == null) return new ArrayList<>();
+        return tags.stream()
+                .filter(tag -> !tag.equalsIgnoreCase(tagToRemove))
+                .toList();
+    }
+}

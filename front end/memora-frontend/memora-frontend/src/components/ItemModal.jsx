@@ -67,7 +67,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   const handleSave = () => {
     let updated = { ...item, title };
     updated.title = title;
-
+    
     if (item.type === 'note'){
       updated.content = content;
     } 
@@ -89,7 +89,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
 
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this card?')) {
+    if(window.confirm('Are you sure you want to delete this card?')) {
       onDelete(item.id);
     }
   };
@@ -109,8 +109,35 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
   };
 
   // Remove - Tag
-  const removeTag = (index) => {
-    setTags(prev => prev.filter((_, i) => i !== index));
+  const handleDeleteTag = async (index, tag) => {
+    const contentType = item.type; // 'link', 'note', or 'image'
+    const contentId = item.id;
+    const encodedTag = encodeURIComponent(tag);
+
+    const url = `http://localhost:8080/api/content/${contentType}/${contentId}/custom-tags/${encodedTag}`;
+    const token = localStorage.getItem('token');
+    console.log("cokki", token);
+    try {
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`, // if using token auth
+          // 'Content-Type': 'application/json',
+        },
+        credentials: 'include', // needed for cookie-based sessions
+      });
+
+      if (!res.ok) throw new Error('Unauthorized or failed request');
+      
+      removeTag(index);
+    } catch (err) {
+      console.error('Error deleting tag:', err);
+      alert('You may not be authorized. Please log in again.');
+    }
+  };
+
+  const removeTag = (indexToRemove) => {
+    setTags((prevTags) => prevTags.filter((_, index) => index !== indexToRemove));
   };
 
 
@@ -280,7 +307,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
                   >
                     <span className="mr-2">{tag}</span>
                     <button
-                      onClick={() => removeTag(index)}
+                      onClick={() => handleDeleteTag(index, tag)}
                       className="text-red-500 hover:text-red-700 font-bold"
                     >
                       ×
@@ -294,7 +321,7 @@ export default function ItemModal({ item, isOpen, onClose, onSave, onDelete }) {
 
 
             <div className="flex items-center justify-between mt-4">
-              <span className="text-xs text-gray-400">{item.date}</span>
+              {/* <span className="text-xs text-gray-400">{item.date}</span> */}
               <div className="flex gap-2">
                 <button onClick={handleDelete} className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm">Delete</button>
                 <button onClick={handleSave} className="px-3 py-1.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm">Save</button>

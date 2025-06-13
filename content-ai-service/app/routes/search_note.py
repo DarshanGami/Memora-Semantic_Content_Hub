@@ -23,7 +23,7 @@ def search_note():
                     "queryVector": embedded,
                     "path": "vector",
                     "numCandidates": 100,
-                    "limit": 5
+                    "limit": 25
                 }
             },
             {
@@ -41,13 +41,17 @@ def search_note():
         seen = set()
         notes = []
         for r in results:
-            if r["note_id"] not in seen:
-                seen.add(r["note_id"])
+            note_id = r.get("note_id")
+            if not note_id:
+                continue
+            if note_id not in seen:
+                seen.add(note_id)
                 notes.append({
-                    "note_id": r["note_id"],
-                    "matched_tag": r["text"],
-                    "score": round(r["score"], 4)
+                    "note_id": note_id,
+                    "matched_tag": r.get("text", ""),
+                    "score": round(r.get("score", 0), 4)
                 })
+
 
         return jsonify({
             "status": "success",

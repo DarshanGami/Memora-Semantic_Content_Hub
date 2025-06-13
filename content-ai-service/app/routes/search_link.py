@@ -1,5 +1,3 @@
-# app/routes/search_link.py
-
 from flask import Blueprint, request, jsonify
 from app.services.embedder import embed_texts
 from app.services.mongo_client import db
@@ -14,24 +12,24 @@ def search_link():
         return jsonify({"error": "Missing search query (?q=...)"}), 400
 
     try:
-        # Step 1: Embed the search query
+        # Embed the query
         embedded = embed_texts([query])[0]["vector"]
 
-        # Step 2: Perform vector search using $vectorSearch in MongoDB
+        # Vector search pipeline
         pipeline = [
             {
                 "$vectorSearch": {
-                    "index": "link_vector_index",  # Your index name in MongoDB
+                    "index": "link_vector_index",
                     "queryVector": embedded,
                     "path": "vector",
                     "numCandidates": 100,
-                    "limit": 5
+                    "limit": 25
                 }
             },
             {
                 "$project": {
                     "_id": 0,
-                    "link_id": 1,
+                    "content_id": 1,
                     "url": 1,
                     "text": 1,
                     "score": {"$meta": "vectorSearchScore"}
@@ -44,13 +42,16 @@ def search_link():
         seen = set()
         links = []
         for r in results:
-            if r["link_id"] not in seen:
-                seen.add(r["link_id"])
+            content_id = r.get("content_id")
+            if not content_id:
+                continue
+            if content_id not in seen:
+                seen.add(content_id)
                 links.append({
-                    "link_id": r["link_id"],
-                    "url": r["url"],
-                    "tags": r["text"],
-                    "score": round(r["score"], 4)
+                    "content_id": content_id,
+                    "url": r.get("url", ""),
+                    "matched_tag": r.get("text", ""),
+                    "score": round(r.get("score", 0), 4)
                 })
 
         return jsonify({

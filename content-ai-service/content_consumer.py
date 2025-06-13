@@ -1,6 +1,7 @@
 import json
 import requests
 import base64
+import re
 from kafka import KafkaConsumer, KafkaProducer
 from app.services.tagger import (
     get_tags_from_note_text,
@@ -15,11 +16,22 @@ note_vector_collection = db["note_vectors"]
 image_vector_collection = db["image_vectors"]
 link_vector_collection = db["link_vectors"]
 
+def safe_json_deserializer(m):
+    try:
+        text = m.decode("utf-8")
+        # Remove unescaped control characters (except \n, \t, etc. if you want to keep them)
+        text = re.sub(r'[\x00-\x1f\x7f]', ' ', text)  # Replaces invalid control chars with space
+        return json.loads(text)
+    except Exception as e:
+        print("❌ Failed to decode JSON:", e)
+        print("🧾 Raw message:", m)
+        return None
+    
 consumer = KafkaConsumer(
     "tag-request",
     bootstrap_servers="127.0.0.1:9092",
-    group_id="ai-content-consumer",
-    value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+    group_id="ai-content-consumer-new",
+    value_deserializer=safe_json_deserializer,
     api_version=(0, 10)
 )
 

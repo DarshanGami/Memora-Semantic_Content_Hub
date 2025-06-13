@@ -93,7 +93,7 @@ public class AuthService {
 
         tokenRepository.save(resetToken);
 
-        String resetLink = "http://localhost:8080/reset-password-form?token=" + token;
+        String resetLink = "http://localhost:5173/reset-password-form?token=" + token;
 
 
         SimpleMailMessage mail = new SimpleMailMessage();

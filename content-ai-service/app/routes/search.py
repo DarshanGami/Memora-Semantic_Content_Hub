@@ -1,5 +1,3 @@
-# app/routes/search.py
-
 from flask import Blueprint, request, jsonify
 from app.services.embedder import embed_texts
 from app.services.mongo_client import image_vector_collection
@@ -10,27 +8,29 @@ search_router = Blueprint("search_router", __name__)
 def search_image():
     query = request.args.get("q")
     if not query:
-        return jsonify({"error": "Missing search query (?q=...)"})
+        return jsonify({"error": "Missing search query (?q=...)"}), 400
 
     try:
-        # Embed the query
-        embedded = embed_texts([query])[0]["vector"]
+        # Step 1: Embed the query
+        embedded = embed_texts([query])[0].get("vector")
+        if not embedded:
+            return jsonify({"error": "Embedding failed"}), 500
 
-        # Perform vector search using $vectorSearch (MongoDB Atlas)
+        # Step 2: Build vector search pipeline
         pipeline = [
             {
                 "$vectorSearch": {
-                    "index": "image_vector_index",   # Your index name in MongoDB
+                    "index": "image_vector_index",  # MongoDB Atlas vector index
                     "queryVector": embedded,
                     "path": "vector",
                     "numCandidates": 500,
-                    "limit": 50
+                    "limit": 25
                 }
             },
             {
                 "$project": {
                     "_id": 0,
-                    "image_id": 1,
+                    "content_id": 1,
                     "text": 1,
                     "score": {"$meta": "vectorSearchScore"}
                 }
@@ -39,22 +39,25 @@ def search_image():
 
         results = list(image_vector_collection.aggregate(pipeline))
 
-        # Group by image_id, return top 3–5 distinct image_ids
+        # Step 3: Deduplicate by content_id
         seen = set()
         images = []
         for r in results:
-            if r["image_id"] not in seen:
-                seen.add(r["image_id"])
+            content_id = r.get("content_id")
+            if not content_id:
+                continue
+            if content_id not in seen:
+                seen.add(content_id)
                 images.append({
-                    "image_id": r["image_id"],
-                    "matched_tag": r["text"],
-                    "score": round(r["score"], 4)
+                    "content_id": content_id,
+                    "matched_tag": r.get("text", ""),
+                    "score": round(r.get("score", 0.0), 4)
                 })
 
         return jsonify({
             "status": "success",
             "query": query,
-            "matches": images[:10]
+            "matches": images[:10]  # Return only top 10 distinct content_ids
         })
 
     except Exception as e:
