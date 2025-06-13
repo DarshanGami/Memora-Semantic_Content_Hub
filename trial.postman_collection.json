@@ -297,6 +297,179 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "get note",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzU2MjAyOCwiZXhwIjoxNzQ3NjQ4NDI4fQ._ApVHObPaocDiuQyYqDhZ4SBmwHlmnlDGEnc4jbXoqI",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/notes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"notes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get link",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzU2MjAyOCwiZXhwIjoxNzQ3NjQ4NDI4fQ._ApVHObPaocDiuQyYqDhZ4SBmwHlmnlDGEnc4jbXoqI",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/links",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"links"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get files",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzU2MjAyOCwiZXhwIjoxNzQ3NjQ4NDI4fQ._ApVHObPaocDiuQyYqDhZ4SBmwHlmnlDGEnc4jbXoqI",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/files",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"files"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete note",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzU2MjAyOCwiZXhwIjoxNzQ3NjQ4NDI4fQ._ApVHObPaocDiuQyYqDhZ4SBmwHlmnlDGEnc4jbXoqI",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/notes/68289a09c263707a40a17371",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"notes",
+						"68289a09c263707a40a17371"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete file",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzU2MjAyOCwiZXhwIjoxNzQ3NjQ4NDI4fQ._ApVHObPaocDiuQyYqDhZ4SBmwHlmnlDGEnc4jbXoqI",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/files/6828eb21e0028f79a4f8e2ee",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"files",
+						"6828eb21e0028f79a4f8e2ee"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete link",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZ0BleGFtcGxlLmNvbSIsImlhdCI6MTc0NzU2MjAyOCwiZXhwIjoxNzQ3NjQ4NDI4fQ._ApVHObPaocDiuQyYqDhZ4SBmwHlmnlDGEnc4jbXoqI",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/links/6829c4d10d913a2f2c4ca699",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"links",
+						"6829c4d10d913a2f2c4ca699"
+					],
+					"query": [
+						{
+							"key": null,
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

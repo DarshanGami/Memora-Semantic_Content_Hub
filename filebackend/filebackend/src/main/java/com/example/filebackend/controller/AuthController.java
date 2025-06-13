@@ -1,8 +1,6 @@
 package com.example.filebackend.controller;
 
-import com.example.filebackend.dto.AuthRequest;
-import com.example.filebackend.dto.AuthResponse;
-import com.example.filebackend.dto.SignUpRequest;
+import com.example.filebackend.dto.*;
 import com.example.filebackend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,4 +22,17 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        authService.sendPasswordResetToken(request);
+        return ResponseEntity.ok("Reset link sent if email is registered.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok("Password reset successful.");
+    }
+
 }
