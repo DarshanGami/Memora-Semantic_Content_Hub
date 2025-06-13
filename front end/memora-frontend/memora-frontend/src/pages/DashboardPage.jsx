@@ -83,7 +83,8 @@ const DashboardPage = () => {
               file.updatedAt ||
               file.modifiedDate ||
               file.createdAt ||
-              file.uploadDate
+              file.uploadDate,
+              tags: file.tags || [],
           };
         });
 
@@ -96,7 +97,8 @@ const DashboardPage = () => {
             note.updatedAt ||
             note.modifiedDate ||
             note.createdAt ||
-            note.createdDate
+            note.createdDate,
+            tags: note.tags || [],
         }));
 
         // 4. Process links
@@ -109,10 +111,11 @@ const DashboardPage = () => {
             link.modifiedDate ||
             link.createdAt ||
             link.createdDate ||
-            new Date().toISOString()
+            new Date().toISOString(),
+            tags: link.tags || [],
         }));
 
-
+        // console.log("linkkk", links);
         // 5. Combine and sort all items by newest first
         const allItems = [...notes, ...files, ...links].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -138,10 +141,11 @@ const DashboardPage = () => {
       }
     };
 
+    console.log("papp", items);
 
-  useEffect(() => {
-    console.log("Updated items:", items);
-  }, [items]);
+    useEffect(() => {
+      console.log("Updated items:", items);
+    }, [items]);
 
 
   // Tags nu add karvanu API and field.............................................
@@ -153,42 +157,57 @@ const DashboardPage = () => {
         return;
       }
 
-      // const parsedTags = noteTags
-      //       .split(',')                    // Split the input string by commas
-      //       .map(t => t.trim())            // Trim whitespace around each tag
-      //       .filter(t => t.length > 0);   // Remove any empty tags
-
-      // console.log("hello", parsedTags);
-
-      if (editingNoteId) {
-        await api.put(`/notes/${editingNoteId}`, {
+      if(editingNoteId) {
+        const response = await api.put(`/notes/${editingNoteId}`, {
           title: noteTitle,
           content: noteContent,
-          // tags: parsedTags,
+          tags: noteTags,
         });
-        // toast.success('Item updated!');
+
+        const updatedItem = {
+          ...response.data,
+          type: 'note',
+          createdAt: response.data.createdAt || response.data.createdDate || new Date().toISOString(),
+          updatedAt: response.data.updatedAt || response.data.modifiedDate || response.data.createdAt || new Date().toISOString(),
+          tags: response.data.tags || [],
+        };
+
+        setItems(prev =>
+          prev.map(item => (item._id === editingNoteId ? updatedItem : item))
+        );
+
+        toast.success('Item updated successfully!');
       } else {
-        await api.post('/notes', {
+        const response = await api.post('/notes', {
           title: noteTitle,
           content: noteContent,
-          // tags: parsedTags,
+          tags: noteTags,
         });
+
+        const newItem = {
+          ...response.data,
+          type: 'note',
+          createdAt: response.data.createdAt || response.data.createdDate || new Date().toISOString(),
+          updatedAt: response.data.updatedAt || response.data.modifiedDate || response.data.createdAt || new Date().toISOString(),
+          tags: response.data.tags || [],
+        };
+
+        setItems(prev => [newItem, ...prev]);
+        toast.success('Item added successfully!');
       }
-      
-      toast.success('Item added successfully!');
-      // Clear fields and close modal
+
       setNoteTitle('');
       setNoteContent('');
       setNoteTags([]);
       setEditingNoteId(null);
       setShowNoteModal(false);
-      fetchData(); // Refresh all data
+      // fetchData();
     } catch (err) {
       toast.error('Failed to save item!');
       console.error('Error saving note:', err);
-      // alert('Failed to save note. Check console for details.');
     }
   };
+
   
   
   const handleFileUploaded = async (file) => {
@@ -196,64 +215,90 @@ const DashboardPage = () => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('file', file);
-      await axios.post('http://localhost:8080/api/files/upload', formData, {
+
+      const response = await axios.post('http://localhost:8080/api/files/upload', formData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
+
+      const uploadedFile = response.data;
+
+      const extension = uploadedFile.fileName?.split('.').pop().toLowerCase();
+      const type = imageExtensions.includes(extension) ? 'image' : 'document';
+
+      const newFile = {
+        ...uploadedFile,
+        type,
+        createdAt: uploadedFile.createdAt || uploadedFile.uploadDate || new Date().toISOString(),
+        updatedAt: uploadedFile.updatedAt || uploadedFile.modifiedDate || uploadedFile.createdAt || new Date().toISOString(),
+        tags: uploadedFile.tags || fileTags || [],
+      };
+
+      setItems(prev => [newFile, ...prev]);
+
       setShowFileModal(false);
       setFileTags([]);
       toast.success('Item added successfully!');
       fetchData();
     } catch (err) {
-      // console.error('Error uploading file:', err);
-      // alert('Failed to upload file.');
+      console.error('Error uploading file:', err);
       toast.error('Failed to save item!');
     }
   };
+
   
   // tags nu add karvanu baki chhe.......................................
   const handleLinkSaved = async () => {
-    // Simple URL validation function
     const isValidUrl = (string) => {
       try {
-        new URL(string); // if this doesn't throw, it's valid
+        new URL(string);
         return true;
       } catch (_) {
         return false;
       }
     };
 
-    // Check if URL is empty
     if (!linkUrl || linkUrl.trim() === "") {
       toast.error('URL is required!');
       return;
     }
 
-    // Check if URL is valid
     if (!isValidUrl(linkUrl)) {
       toast.error('Please enter a valid URL!');
       return;
     }
 
     try {
-      await api.post('/links', {
+      const response = await api.post('/links', {
         url: linkUrl,
         title: linkTitle,
-        description: linkDescription
+        description: linkDescription,
+        tags: linkTags,
       });
+
+      const newLink = {
+        ...response.data,
+        type: 'link',
+        createdAt: response.data.createdAt || new Date().toISOString(),
+        updatedAt: response.data.updatedAt || response.data.createdAt || new Date().toISOString(),
+        tags: response.data.tags || [],
+      };
+
+      setItems(prevItems => [newLink, ...prevItems]);
+
       setShowLinkModal(false);
       setLinkTitle("");
       setLinkUrl("");
       setLinkDescription("");
       setLinkTags([]);
       toast.success('Item added successfully!');
-      fetchData();
-      // console.log(items);
     } catch (err) {
       toast.error('Failed to save item!');
+      console.error('Error saving link:', err);
     }
   };
+
 
 
   const filteredItems = items.filter((item) => {
@@ -278,36 +323,28 @@ const DashboardPage = () => {
     setShowItemModal(true);
   };
 
+  useEffect(() => {
+    if (editingNoteId) {
+      // Only call handleNoteSubmit after states are set and editingNoteId changes
+      handleNoteSubmit();
+      window.location.reload();
+    }
+  }, [editingNoteId]);
+
   // Handler to save edits
   // Item Update no API backIn...................................................................
   const handleSaveItem = (updatedItem) => {
-    setItems(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
+    // console.log("ok", updatedItem);
+    if(updatedItem.type === "note"){
+      setNoteTitle(updatedItem.title);
+      setNoteContent(updatedItem.content);
+      setNoteTags(updatedItem.tags || []);
+      setEditingNoteId(updatedItem.id);
+    }
+    // setItems(items => items.map(i => i.id === updatedItem.id ? updatedItem : i));
     setShowItemModal(false);
     setSelectedItem(null);
   };
-
-  // const handleSaveItem = async (updatedItem) => {
-  //   try {
-  //     const res = await fetch(`/api/items/${updatedItem.id}`, {
-  //       method: 'PUT', // or 'PATCH' depending on your backend
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify(updatedItem),
-  //     });
-
-  //     if (!res.ok) throw new Error('Failed to update item');
-
-  //     // Update local state only if server responds successfully
-  //     const savedItem = await res.json();
-  //     setItems(items => items.map(i => i.id === savedItem.id ? savedItem : i));
-  //     setShowItemModal(false);
-  //     setSelectedItem(null);
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert('Error updating item');
-  //   }
-  // };
 
 
   // Handler to delete item
@@ -469,6 +506,7 @@ const DashboardPage = () => {
                 setEditingNoteId(null);
                 setNoteTitle('');
                 setNoteContent('');
+                setNoteTags([]);
                 setShowNoteModal(true);
               }}
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group"
@@ -496,7 +534,9 @@ const DashboardPage = () => {
             </div>
 
             <div
-              onClick={() => setShowFileModal(true)}
+              onClick={() => 
+                setShowFileModal(true)
+              }
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group"
             >
               <div className="p-4">
@@ -513,6 +553,7 @@ const DashboardPage = () => {
                 setLinkTitle("");
                 setLinkUrl("");
                 setLinkDescription("");
+                setLinkTags([]);
                 setShowLinkModal(true);
               }}
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group"

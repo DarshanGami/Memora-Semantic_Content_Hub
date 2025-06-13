@@ -38,7 +38,7 @@ const FileUploadModal = ({ onClose, onUploaded, fileTags, setFileTags}) => {
           </div>
           {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
             <input
               type="text"
@@ -47,7 +47,7 @@ const FileUploadModal = ({ onClose, onUploaded, fileTags, setFileTags}) => {
               className="w-full p-2 border border-[rgb(13,148,136)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(13,148,136)] focus:border-transparent"
               placeholder="Enter tags (comma separated)"
             />
-          </div>
+          </div> */}
 
           <div className="flex justify-end gap-2 mt-3">
             <button 
