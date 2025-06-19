@@ -29,9 +29,9 @@ Most systems rely on keyword-based search. Memora uses **semantic tagging and ve
 ## 🧩 Technology Stack
 
 | Layer       | Technology              | Description                           |
-|-------------|--------------------------|---------------------------------------|
-| Frontend    | React.js + TypeScript   | UI and user interactions              |
-| Backend     | Spring Boot (Java 17)   | REST API, auth, and business logic    |
+|-------------|-------------------------|---------------------------------------|
+| Frontend    | React.js + Tailwind CSS | UI and user interactions              |
+| Backend     | Spring Boot (Java 21)   | REST API, auth, and business logic    |
 | AI Service  | Python + Flask          | Microservice for tagging & embeddings |
 | AI APIs     | Gemini API              | Generates contextual tags             |
 | Embeddings  | Mixer / mxbai-embed     | Converts tags into semantic vectors   |
