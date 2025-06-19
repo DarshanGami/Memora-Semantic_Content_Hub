@@ -48,7 +48,7 @@ Most systems rely on keyword-based search. Memora uses **semantic tagging and ve
 > 🟧 AI Services – Flask + Gemini + Mixer  
 > 🟪 Database – MongoDB  
 
-![Memora Architecture](./assets/memora-architecture.png)
+![Memora Architecture](index.png)
 
 ---
 
