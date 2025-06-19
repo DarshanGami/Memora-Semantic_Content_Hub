@@ -34,7 +34,7 @@ Most systems rely on keyword-based search. Memora uses **semantic tagging and ve
 | Backend     | Spring Boot (Java)      | REST API, auth, and business logic    |
 | AI Service  | Python + Flask          | Microservice for tagging + embeddings |
 | AI APIs     | Gemini API              | Generates contextual tags             |
-| Embeddings  | Mixer Model             | Creates vector representations        |
+| Embeddings  | mxbai-embed-large-v1    | Creates vector representations        |
 | Database    | MongoDB                 | Stores content, metadata, and vectors |
 | DevOps      | Docker + Docker Compose | Unified local deployment              |
 
