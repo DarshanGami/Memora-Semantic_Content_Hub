@@ -50,8 +50,8 @@ Most systems rely on keyword-based search. Memora uses **semantic tagging and ve
 
 ![Memora Architecture](index.png)
 
-## Ai-Servise
-![ai-servise](AI-Service.png)
+## Ai-Service
+![ai-service](AI-Service.png)
 ---
 
 ## 🔁 Data Flow & AI Logic
