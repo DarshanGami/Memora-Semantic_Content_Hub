@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from app.services.embedder import embed_texts
-from app.services.mongo_client import image_vector_collection
+from app.services.mongo_client import db
+
+image_vector_collection = db["image_vectors"]
 
 search_router = Blueprint("search_router", __name__)
 

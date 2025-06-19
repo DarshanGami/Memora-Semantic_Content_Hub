@@ -13,5 +13,4 @@ DB_NAME = "memora"
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 
-# Collections
-image_vector_collection = db["image_vectors"]
+

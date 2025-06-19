@@ -71,13 +71,13 @@ public class NoteController {
         );
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<NoteResponse>> searchNotes(
-            @RequestParam String q,  // Query parameter (e.g., /search?q=spring)
-            @AuthenticationPrincipal UserDetails userDetails
-    ) {
-        return ResponseEntity.ok(
-                noteService.searchNotes(userDetails.getUsername(), q)
-        );
-    }
+//    @GetMapping("/search")
+//    public ResponseEntity<List<NoteResponse>> searchNotes(
+//            @RequestParam String q,  // Query parameter (e.g., /search?q=spring)
+//            @AuthenticationPrincipal UserDetails userDetails
+//    ) {
+//        return ResponseEntity.ok(
+//                noteService.searchNotes(userDetails.getUsername(), q)
+//        );
+//    }
 }

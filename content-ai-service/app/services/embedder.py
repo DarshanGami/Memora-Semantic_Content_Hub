@@ -21,7 +21,12 @@ def embed_texts(text_list):
         return []
 
     # Ensure strings are stripped
-    cleaned_texts = [t.strip() for t in text_list if t.strip()]
+    cleaned_texts = []
+    for t in text_list:
+        stripped = t.strip()
+        if stripped:
+            cleaned_texts.append(stripped)
+
     if not cleaned_texts:
         return []
 

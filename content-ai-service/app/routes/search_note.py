@@ -22,7 +22,7 @@ def search_note():
                     "index": "note_vector_index",   # Use your vector index name
                     "queryVector": embedded,
                     "path": "vector",
-                    "numCandidates": 100,
+                    "numCandidates": 500,
                     "limit": 25
                 }
             },

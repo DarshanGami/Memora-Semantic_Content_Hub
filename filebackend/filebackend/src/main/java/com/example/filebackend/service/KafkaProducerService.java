@@ -15,6 +15,7 @@ public class KafkaProducerService {
     private static final String TAG_REQUEST_TOPIC = "tag-request";
 
     public void sendTagRequest(String contentId, String contentType, String text, List<String> customTags) {
+
         if ("document".equalsIgnoreCase(contentType)) {
             System.out.println("Skipping tag request for document: " + contentId);
             return;

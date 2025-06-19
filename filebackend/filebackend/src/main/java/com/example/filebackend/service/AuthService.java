@@ -95,7 +95,6 @@ public class AuthService {
 
         String resetLink = "http://localhost:5173/reset-password-form?token=" + token;
 
-
         SimpleMailMessage mail = new SimpleMailMessage();
         mail.setTo(user.getEmail());
         mail.setSubject("Password Reset Request");

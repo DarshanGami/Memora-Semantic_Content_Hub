@@ -42,6 +42,7 @@ public class CustomTagController {
             case "link" -> linkRepository.existsById(contentId);
             default -> false;
         };
+
         if (!exists) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Content not found");
         }
@@ -70,32 +71,19 @@ public class CustomTagController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Content not found");
         }
 
+        // Remove tag from your DB (not shown here, keep your implementation)
         removeTagFromDatabase(contentType, contentId, tagName);
 
-        // Call AI backend to delete embedding via DELETE with query parameters
-        try {
-            String aiBackendUrl = String.format(
-                    "http://localhost:5000/api/delete/%s-tag?content_id=%s&custom_tag=%s",
-                    contentType.toLowerCase(),
-                    URLEncoder.encode(contentId, StandardCharsets.UTF_8),
-                    URLEncoder.encode(tagName, StandardCharsets.UTF_8)
-            );
+        // Call service to delete vector
+        boolean aiDeleted = aiBackendService.deleteTagVector(contentType, contentId, tagName);
 
-            aiBackendService.getRestTemplate().exchange(
-                    aiBackendUrl,
-                    HttpMethod.DELETE,
-                    null,
-                    Void.class
-            );
-
-            System.out.println("Successfully deleted tag vector from AI backend");
-
-        } catch (Exception e) {
-            System.err.println("Failed to call AI backend for deletion: " + e.getMessage());
+        if (!aiDeleted) {
+            return ResponseEntity.ok("Tag deleted locally, but failed to delete vector in AI backend");
         }
 
         return ResponseEntity.ok("Custom tag deleted successfully");
     }
+
 
     // ✅ Update tag list in content
     private void updateTagsArray(String contentType, String contentId, List<String> newTags) {

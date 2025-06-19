@@ -10,6 +10,8 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 //import java.net.http.HttpHeaders;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,29 +68,24 @@ public class AiBackendService {
             }
         }
 
-        String aiBackendUrl = "http://localhost:5000" + endpoint;
-
-        Map<String, String> payload = new HashMap<>();
-        if (contentType.equalsIgnoreCase("note")) {
-            payload.put("note_id", contentId);
-        } else {
-            payload.put("content_id", contentId);
-        }
-        payload.put("custom_tag", customTag);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON); // ✅ use correct Spring HttpHeaders
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
-
         try {
-            restTemplate.exchange(aiBackendUrl, HttpMethod.DELETE, request, Void.class); // ✅ DELETE request
-            System.out.println("Successfully deleted tag vector from AI backend");
+            String aiBackendUrl = String.format(
+                    "http://localhost:5000%s?content_id=%s&custom_tag=%s",
+                    endpoint,
+                    URLEncoder.encode(contentId, StandardCharsets.UTF_8),
+                    URLEncoder.encode(customTag, StandardCharsets.UTF_8)
+            );
+
+            restTemplate.exchange(aiBackendUrl, HttpMethod.DELETE, null, Void.class);
+            System.out.println("✅ Successfully deleted tag vector from AI backend");
             return true;
+
         } catch (Exception e) {
-            System.err.println("Failed to delete tag vector from AI backend: " + e.getMessage());
+            System.err.println("❌ Failed to delete tag vector from AI backend: " + e.getMessage());
             return false;
         }
     }
+
 
     // ✅ Expose RestTemplate for direct use if needed in controller
     public RestOperations getRestTemplate() {

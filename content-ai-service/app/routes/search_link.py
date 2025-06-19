@@ -22,7 +22,7 @@ def search_link():
                     "index": "link_vector_index",
                     "queryVector": embedded,
                     "path": "vector",
-                    "numCandidates": 100,
+                    "numCandidates": 500,
                     "limit": 25
                 }
             },

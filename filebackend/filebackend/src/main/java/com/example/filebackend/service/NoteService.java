@@ -88,13 +88,13 @@ public class NoteService {
     }
 
     // Search notes by keyword (for the given user)
-    public List<NoteResponse> searchNotes(String userId, String keyword) {
-        // Implement search logic (basic search for now)
-        return noteRepository.findByUserId(userId).stream()
-                .filter(note -> note.getContent().contains(keyword) || note.getTitle().contains(keyword))
-                .map(this::mapToNoteResponse)
-                .collect(Collectors.toList());
-    }
+//    public List<NoteResponse> searchNotes(String userId, String keyword) {
+//        // Implement search logic (basic search for now)
+//        return noteRepository.findByUserId(userId).stream()
+//                .filter(note -> note.getContent().contains(keyword) || note.getTitle().contains(keyword))
+//                .map(this::mapToNoteResponse)
+//                .collect(Collectors.toList());
+//    }
 
     // Map Note to NoteResponse (DTO)
     private NoteResponse mapToNoteResponse(Note note) {
