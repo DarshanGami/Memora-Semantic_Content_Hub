@@ -1,48 +1,88 @@
 # 📘 Memora
 
-> A full-stack AI-powered content management system that enables users to store, organize, and retrieve notes, images, documents, and links with intelligent, semantic search.
+> An AI-powered content management system to help you store, organize, and **search smarter** through notes, documents, images, and links.
 
 ---
 
-## 📌 Overview
+## 🚀 What is Memora?
 
-**Memora** is more than just a file upload or note-taking tool — it’s an intelligent content platform that uses AI to understand and organize your data.
+**Memora** is a full-stack application that combines artificial intelligence (AI) with content storage to create a **smart personal assistant** for your digital content.
 
-### 🔍 What Makes It Special?
-
-Most systems rely on keyword-based search. Memora uses **semantic tagging and vector embeddings**, enabling it to "understand" content. Even if you search with different words, it can still find relevant results — **like how a human thinks**.
+Unlike regular note-taking or file storage apps, Memora can understand the meaning of your files and helps you find them — even if you don’t remember exact words or filenames.
 
 ---
 
-## 🧠 Core Features
+## ✨ Key Highlights
 
-- 🔐 User registration, login, logout, and password recovery
-- ☁️ Upload multiple content types (text, images, files, URLs)
-- 🧠 AI-generated semantic tags (via Gemini API)
-- 📈 1024-dimensional vector embeddings (Mixer model)
-- 🔍 Fast semantic search (dot product similarity)
-- 🏷️ Manage tags: add, delete, edit
-- 🌐 Fully containerized using **Docker & Docker Compose**
+- 🔍 **Semantic Search**: Understands *meaning*, not just words.
+- 🧠 **AI-Generated Tags**: Uses Google’s **Gemini API** to create smart tags.
+- 📂 **Multiformat Uploads**: Upload text, PDFs, images, and web links.
+- 📈 **Vector Embedding**: Tags are transformed into AI-readable vectors.
+- 🏷️ **Custom Tagging**: You can edit, delete, or add your own tags.
+- 🔐 **Secure Access**: JWT authentication for secure login/logout.
+- 🐳 **Easy Deployment**: One command to run using Docker Compose.
 
 ---
 
-## 🧩 Technology Stack
+## 🧠 How Memora Works (Step-by-Step)
 
-| Layer       | Technology              | Description                           |
-|-------------|-------------------------|---------------------------------------|
-| Frontend    | React.js + Tailwind CSS | UI and user interactions              |
-| Backend     | Spring Boot (Java 21)   | REST API, auth, and business logic    |
-| AI Service  | Python + Flask          | Microservice for tagging & embeddings |
-| AI APIs     | Gemini API              | Generates contextual tags             |
-| Embeddings  | Mixer / mxbai-embed     | Converts tags into semantic vectors   |
-| Database    | MongoDB (Vector Search) | Stores content, metadata & vectors    |
-| DevOps      | Docker + Compose        | Unified local deployment              |
+Here’s what happens behind the scenes when you upload or search content:
+
+### 1. 📤 Upload Content
+- You upload content (text, image, file, or link) from the web interface.
+- The frontend sends this data to the backend using a REST API.
+
+### 2. 🧠 Semantic Tagging (AI Service)
+- The backend sends the content to an **AI microservice**.
+- This microservice uses **Gemini API** to extract the **main ideas** (semantic tags).
+
+### 3. 📐 Vector Embeddings
+- The tags are converted into **1024-dimensional vectors** using the **Mixer model** (e.g., `mxbai-embed-large-v1`).
+- These vectors allow the system to understand "concepts", not just words.
+
+### 4. 🗄 Store in Database
+- Everything is stored in MongoDB:
+  - Original content
+  - Tags
+  - Vectors
+  - User information
+
+### 5. 🔍 Semantic Search
+- When you type a search query:
+  - The query is converted into a vector.
+  - Memora finds content whose tag vectors are **mathematically similar** (using dot product similarity).
+  - It returns the most relevant results — even with different words.
+
+### 6. ✏️ Edit Tags or Content
+- If you update content or tags:
+  - The backend sends it to the AI service again.
+  - New tags and vectors are created.
+  - The database is updated automatically.
+
+### 7. 🔐 User Login & Security
+- Supports registration, login, and password recovery.
+- Uses **JWT tokens** for secure session management.
+- Logout removes the token and ends the session securely.
+
+---
+
+## 🧩 Full Technology Stack
+
+| Layer         | Technology                | Description                           |
+|---------------|---------------------------|---------------------------------------|
+| Frontend      | React.js, Tailwind CSS    | User interface and interaction        |
+| Backend       | Spring Boot (Java 21)     | API, user management, storage logic   |
+| AI Service    | Flask (Python)            | Generates tags and vector embeddings  |
+| AI API        | Gemini API (Google)       | Used for intelligent tag creation     |
+| Embedding     | Mixer / mxbai-embed       | Converts tags to 1024D vector format  |
+| Database      | MongoDB (Vector Indexing) | Stores everything with fast search    |
+| DevOps        | Docker, Docker Compose    | Makes setup and deployment easy       |
 
 ---
 
 ## 🧠 Architecture Diagram
 
-> **Color Key**:  
+> Legend:  
 > 🟦 Frontend – React  
 > 🟩 Backend – Spring Boot  
 > 🟧 AI Services – Flask + Gemini + Mixer  
@@ -50,91 +90,25 @@ Most systems rely on keyword-based search. Memora uses **semantic tagging and ve
 
 ![Memora Architecture](index.png)
 
-### 🔧 AI Microservice Details:
+### AI Microservice Flow
 
 ![AI Service Architecture](AI-Service.png)
 
 ---
 
-## 🔁 Data Flow & AI Logic
+## 🛠️ Getting Started (Using Docker)
 
-Memora intelligently handles content upload, tag generation, semantic search, and updates with a smart pipeline powered by AI.
+### 📦 Prerequisites
 
----
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/)
 
-### 📤 1. Content Upload
-
-- User uploads **notes, files, or links** via React frontend.
-- Frontend sends data to backend via `POST /api/upload`.
-- Backend forwards the raw content to the AI microservice.
-
----
-
-### 🧠 2. Semantic Tag Generation
-
-- The AI microservice extracts content.
-- It uses the **Gemini API** to generate **semantic tags**.
-- Tags are returned to the microservice.
-
----
-
-### 📐 3. Embedding Vectors
-
-- Tags are passed to the **Mixer model** (e.g., `mxbai-embed-large-v1`).
-- Each tag is converted into a **1024-dimensional vector** (values between `-1` and `1`).
-- Vectors are returned to the backend.
-
----
-
-### 🗄️ 4. Storage in MongoDB
-
-- Spring Boot saves:
-  - Original content
-  - Tags
-  - Embedding vectors
-  - User metadata
-- All stored in **MongoDB**, indexed for **vector search**.
-
----
-
-### 🔍 5. Semantic Search
-
-- User enters a **query**.
-- Backend sends the query to the embedder → generates a **query vector**.
-- Dot product similarity is used to match stored tag vectors.
-- Backend retrieves the **most relevant items** and sends them to the UI.
-
----
-
-### ✏️ 6. Edit / Tag Update Flow
-
-- If a user **updates content** or **adds/deletes tags**:
-  - Backend resends the updated content to AI microservice.
-  - **New tags and vectors** are generated.
-  - MongoDB is updated to reflect the changes.
-
----
-
-### 🔐 7. Authentication & Logout
-
-- Users can **register**, **login**, and **recover passwords**.
-- Spring Security provides **JWT-based** auth.
-- **Logout**:
-  - On frontend: token is removed from localStorage.
-  - On backend: optionally invalidate or expire token.
-
----
-
-## 🐳 Docker Deployment
-
-### 🧱 Requirements
-
-- Docker
-- Docker Compose
-
-### ▶️ To Run Locally
+### ▶️ Steps to Run Locally
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/your-username/memora.git
 cd memora
-docker-compose up-- build
+
+# 2. Build and run the full stack
+docker-compose up --build
