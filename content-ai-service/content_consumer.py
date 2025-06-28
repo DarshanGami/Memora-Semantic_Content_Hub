@@ -29,14 +29,14 @@ def safe_json_deserializer(m):
     
 consumer = KafkaConsumer(
     "tag-request",
-    bootstrap_servers="127.0.0.1:9092",
+    bootstrap_servers="redpanda:9092",
     group_id="ai-content-consumer-new",
     value_deserializer=safe_json_deserializer,
     api_version=(0, 10)
 )
 
 producer = KafkaProducer(
-    bootstrap_servers="127.0.0.1:9092",
+    bootstrap_servers="redpanda:9092",
     value_serializer=lambda m: json.dumps(m).encode("utf-8"),
     api_version=(0, 10)
 )

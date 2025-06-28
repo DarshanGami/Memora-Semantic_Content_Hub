@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./filebackend/filebackend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redpanda
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      SPRING_DATA_MONGODB_URI: mongodb+srv://memora-admin:memora-admin188633@memora0.vd8ab7e.mongodb.net/memora?retryWrites=true&w=majority&appName=Memora0
+      JWT_SECRET: K7gNU3sdo+OL0wNhqoVWhr3g6s1xYv72ol/pe/Unols=
+      SPRING_MAIL_USERNAME: dmcreation222@gmail.com
+      SPRING_MAIL_PASSWORD: vluh myue xnsu rejh
+      CLOUDINARY_CLOUD_NAME: dniczh9wq
+      CLOUDINARY_API_KEY: 452369319961628
+      CLOUDINARY_API_SECRET: 7hVW4nsnxz2wex6OgOcUNWu0pEQ
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  ai-service:
+    build: ./content-ai-service
+    ports:
+      - "5000:5000"
+    command: ["sh", "start.sh"]
+    depends_on:
+      - redpanda
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./front end/memora-frontend/memora-frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  redpanda:
+    image: redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=512M
+      - --overprovisioned
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+    networks:
+      - app-network
+    restart: unless-stopped
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redpanda-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data/redpanda
+      o: bind

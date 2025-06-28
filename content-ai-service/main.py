@@ -20,11 +20,8 @@ def create_app():
     CORS(app)
 
     # Register Blueprints with common /api prefix
-    # app.register_blueprint(image_router, url_prefix="/api")
     app.register_blueprint(search_router, url_prefix="/api")
-    # app.register_blueprint(note_router, url_prefix="/api")
     app.register_blueprint(search_note_router, url_prefix="/api")
-    # app.register_blueprint(link_router, url_prefix="/api")
     app.register_blueprint(search_link_router, url_prefix="/api")
     app.register_blueprint(custom_tags_router, url_prefix="/api")
 
