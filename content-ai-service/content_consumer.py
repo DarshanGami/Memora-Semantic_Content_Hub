@@ -36,41 +36,41 @@ def safe_json_deserializer(m):
         print("🧾 Raw message:", m)
         return None
     
-# consumer = KafkaConsumer(
-#     "tag-request",
-#     bootstrap_servers="redpanda:9092",
-#     group_id="ai-content-consumer-new",
-#     value_deserializer=safe_json_deserializer,
-#     api_version=(0, 10)
-# )
-
-# producer = KafkaProducer(
-#     bootstrap_servers="redpanda:9092",
-#     value_serializer=lambda m: json.dumps(m).encode("utf-8"),
-#     api_version=(0, 10)
-# )
-
-# Consumer setup
 consumer = KafkaConsumer(
     "tag-request",
-    bootstrap_servers=BROKER_URL,
+    bootstrap_servers="localhost:9092",
     group_id="ai-content-consumer-new",
     value_deserializer=safe_json_deserializer,
-    security_protocol="SASL_SSL",
-    sasl_mechanism="SCRAM-SHA-256",
-    sasl_plain_username=USERNAME,
-    sasl_plain_password=PASSWORD,
+    api_version=(0, 10)
 )
 
-# Producer setup
 producer = KafkaProducer(
-    bootstrap_servers=BROKER_URL,
+    bootstrap_servers="localhost:9092",
     value_serializer=lambda m: json.dumps(m).encode("utf-8"),
-    security_protocol="SASL_SSL",
-    sasl_mechanism="SCRAM-SHA-256",
-    sasl_plain_username=USERNAME,
-    sasl_plain_password=PASSWORD,
+    api_version=(0, 10)
 )
+
+# Consumer setup
+# consumer = KafkaConsumer(
+#     "tag-request",
+#     bootstrap_servers=BROKER_URL,
+#     group_id="ai-content-consumer-new",
+#     value_deserializer=safe_json_deserializer,
+#     security_protocol="SASL_SSL",
+#     sasl_mechanism="SCRAM-SHA-256",
+#     sasl_plain_username=USERNAME,
+#     sasl_plain_password=PASSWORD,
+# )
+
+# # Producer setup
+# producer = KafkaProducer(
+#     bootstrap_servers=BROKER_URL,
+#     value_serializer=lambda m: json.dumps(m).encode("utf-8"),
+#     security_protocol="SASL_SSL",
+#     sasl_mechanism="SCRAM-SHA-256",
+#     sasl_plain_username=USERNAME,
+#     sasl_plain_password=PASSWORD,
+# )
 
 print("🧠 AI Backend Content Consumer is running...")
 

@@ -35,7 +35,12 @@ public class NoteController {
         NoteResponse response = noteService.createNote(request, userDetails.getUsername());
 
         // Send tag request
-        kafkaProducerService.sendTagRequest(response.getId(), "note", request.getContent(), request.getTags());
+        kafkaProducerService.sendTagRequest(
+                response.getId(),
+                "note",
+                request.getContent(),
+                request.getTags()
+        );
 
         return ResponseEntity.ok(response);
     }
