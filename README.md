@@ -1,6 +1,6 @@
 # 📘 Memora
 
-> An AI-powered content management system to help you store, organize, and **search smarter** through notes, documents, images, and links.
+> An AI-powered Semantic Content Hub to help you store, organize, and **search smarter** through notes, documents, images, and links.
 
 ---
 
