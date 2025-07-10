@@ -90,10 +90,6 @@ Here’s what happens behind the scenes when you upload or search content:
 
 ![Memora Architecture](Architecture.png)
 
-### AI Microservice Flow
-
-![AI Service Architecture](AI-Service.png)
-
 ---
 
 ## 🛠️ Getting Started (Using Docker)
