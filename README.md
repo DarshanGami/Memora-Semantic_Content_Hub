@@ -88,7 +88,7 @@ Here’s what happens behind the scenes when you upload or search content:
 > 🟧 AI Services – Flask + Gemini + Mixer  
 > 🟪 Database – MongoDB  
 
-![Memora Architecture](Architecture.png)
+![Memora Architecture](Memora-Architecture.png)
 
 ---
 
