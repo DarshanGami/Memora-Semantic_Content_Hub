@@ -8,7 +8,7 @@
 
 **Memora** is a full-stack application that combines artificial intelligence (AI) with content storage to create a **smart personal assistant** for your digital content.
 
-Unlike regular note-taking or file storage apps, Memora can understand the meaning of your files and helps you find them — even if you don’t remember exact words or filenames.
+Unlike regular note-taking or file storage apps, Memora can understand the meaning of your files and helps you find them - even if you don’t remember exact words or filenames.
 
 ---
 
@@ -20,7 +20,6 @@ Unlike regular note-taking or file storage apps, Memora can understand the meani
 - 📈 **Vector Embedding**: Tags are transformed into AI-readable vectors.
 - 🏷️ **Custom Tagging**: You can edit, delete, or add your own tags.
 - 🔐 **Secure Access**: JWT authentication for secure login/logout.
-- 🐳 **Easy Deployment**: One command to run using Docker Compose.
 
 ---
 
@@ -51,7 +50,7 @@ Here’s what happens behind the scenes when you upload or search content:
 - When you type a search query:
   - The query is converted into a vector.
   - Memora finds content whose tag vectors are **mathematically similar** (using dot product similarity).
-  - It returns the most relevant results — even with different words.
+  - It returns the most relevant results - even with different words.
 
 ### 6. ✏️ Edit Tags or Content
 - If you update content or tags:
@@ -76,7 +75,6 @@ Here’s what happens behind the scenes when you upload or search content:
 | AI API        | Gemini API (Google)       | Used for intelligent tag creation     |
 | Embedding     | Mixer / mxbai-embed       | Converts tags to 1024D vector format  |
 | Database      | MongoDB (Vector Indexing) | Stores everything with fast search    |
-| DevOps        | Docker, Docker Compose    | Makes setup and deployment easy       |
 
 ---
 
@@ -91,20 +89,3 @@ Here’s what happens behind the scenes when you upload or search content:
 ![Memora Architecture](Memora-Architecture.png)
 
 ---
-
-## 🛠️ Getting Started (Using Docker)
-
-### 📦 Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/)
-
-### ▶️ Steps to Run Locally
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/memora.git
-cd memora
-
-# 2. Build and run the full stack
-docker-compose up --build
