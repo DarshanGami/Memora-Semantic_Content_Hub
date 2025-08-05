@@ -88,4 +88,12 @@ Here’s what happens behind the scenes when you upload or search content:
 
 ![Memora Architecture](Memora-Architecture.png)
 
+## Demo images
+
+![](A_Main.png)
+
+![](A_Content.png)
+
+![](AA_Image.png)
+
 ---
